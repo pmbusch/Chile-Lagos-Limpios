@@ -112,6 +112,8 @@ m <- m %>%
 m
 
 mapshot()
+mapshot(m, "Figures/Maps/SpatialLayers.html", selfcontained=F)
+rm(m)
 
 # Clean WS -----
 rm(url_load_shp)
