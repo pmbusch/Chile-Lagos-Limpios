@@ -191,18 +191,18 @@ saveRDS(atractivos_turisticos,sprintf(file_rds,"atractivos_turisticos"))
 rm(atractivos_turisticos)
 
 ### Plantas de Tratamiento de Aguas Servidas -----
-plata_aguas_servidas <- st_read(sprintf(url_file_shp,folder,
+planta_aguas_servidas <- st_read(sprintf(url_file_shp,folder,
                                          "PTAS_Sirgas19s",
                                          "PTAS_Sirgas19s_VF"))
-plata_aguas_servidas <- st_transform(plata_aguas_servidas,"EPSG:4326") %>% 
+planta_aguas_servidas <- st_transform(planta_aguas_servidas,"EPSG:4326") %>% 
   st_make_valid()
 
 # Spatial filter using 14 communes - to obtain the 23 lakes
-plata_aguas_servidas <- st_filter(plata_aguas_servidas,map_commune2)
+planta_aguas_servidas <- st_filter(planta_aguas_servidas,map_commune2)
 
 # Save layer for use in other scripts
-saveRDS(plata_aguas_servidas,sprintf(file_rds,"plata_aguas_servidas"))
-rm(plata_aguas_servidas)
+saveRDS(planta_aguas_servidas,sprintf(file_rds,"planta_aguas_servidas"))
+rm(planta_aguas_servidas)
 
 ### Humedales 2015-----
 humedales <- st_read(sprintf(url_file_shp,folder,
