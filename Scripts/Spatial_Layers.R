@@ -12,8 +12,11 @@ url_load_shp <- "Data/Spatial Data/%s.rds"
 
 ## Spatial Interactive Visualization function ----
 # Create spatial layer map with labels, to quickly visualize it
-# Input: sf object (spatial vector)
-f.interactive.map <- function(map_object, label_vector, polygon_form=T){
+# Inputs: 
+# - sf object (spatial vector)
+# - label vector: Label to display on the map
+# - polygon form: "a" for polygon area (default), "p" for point and "l" for line
+f.interactive.map <- function(map_object, label_vector, polygon_form="a",...){
   
   # Create labels for the vectors
   labels <- sprintf(
@@ -21,19 +24,54 @@ f.interactive.map <- function(map_object, label_vector, polygon_form=T){
     label_vector) %>% 
     lapply(HTML)
   
+  polygon_form <- str_to_lower(polygon_form)
+  
   # create interactive map object
-  if (polygon_form){
+  if (polygon_form=="a"){
     map_interactive <- leaflet(map_object) %>% 
       addTiles() %>% 
-      addPolygons(label = labels)
+      addPolygons(label = labels,...)
+  } else if (polygon_form=="p") {
+    map_interactive <- leaflet(map_object) %>% 
+      addTiles() %>% 
+      addCircles(label = labels,...)
   } else {
     map_interactive <- leaflet(map_object) %>% 
       addTiles() %>% 
-      addMarkers(label = labels)
+      addPolylines(label = labels,...)
   }
   # return map
   return(map_interactive)
 }
+
+# Function to create popup for the spatial layers ------
+# Inputs:
+# - Layer: sf object, to get the feature
+# - Title of the layer
+# - Features: Vector of character of features to print
+f.create.labels <- function(layer,title, features){
+  
+  # Extract features to print from the layer
+  features_data <- layer %>% as.data.frame() %>% dplyr::select(features)
+  
+  # Incorporate column name into the feature to print
+  feat <- sapply(colnames(features_data), 
+                 function(x) sprintf("<i>%s</i>: %s",
+                                     x,features_data[,x])) %>%
+    as.data.frame()
+  # Merge all columns into a single text, separated by a line break
+  feat2 <- unite(feat,"x",colnames(feat),sep="<br/>")
+  
+  # Add title
+  feat2$x <- paste0("<strong>",title,"</strong><br/>",feat2$x)
+  
+  # Convert to HTML to incorporate into the map
+  label <- feat2$x %>% as.list() %>% lapply(HTML)
+  
+  # return
+  return(label)
+}
+
 
 ## Communes  ------
 
@@ -47,32 +85,30 @@ m_commune <- f.interactive.map(map_commune2,lab_commune)
 m_commune
 
 
-# MASAS LACUSTRES ------
-lagos_zone <- readRDS(sprintf(url_load_shp,"lagos_zone"))
-# map
-m_lakes <- f.interactive.map(lagos_zone, lagos_zone$Nombre)
-m_lakes
+## LOAD LAYERS -------------
 
-## Areas_Pobladas --------
-
+lagos_zone <- readRDS(sprintf(url_load_shp,"lagos_zone")) # MASAS LACUSTRES
 areas_pobladas <- readRDS(sprintf(url_load_shp,"areas_pobladas"))
-m_areas_pobladas <- f.interactive.map(areas_pobladas, areas_pobladas$Localidad)
-m_areas_pobladas
-
-### Glaciares -----
-
 glaciares <- readRDS(sprintf(url_load_shp,"glaciares"))
-m_glaciares <- f.interactive.map(glaciares, glaciares$NOMBRE)
-m_glaciares
-
-
-### Atractivos Turisticos Nacionales -----
-
 atractivos_turisticos <- readRDS(sprintf(url_load_shp,"atractivos_turisticos"))
-m_atractivos_turisticos <- f.interactive.map(atractivos_turisticos, 
-                                             atractivos_turisticos$NOMBRE,
-                                             polygon_form = F)
-m_atractivos_turisticos
+aeropuertos <- readRDS(sprintf(url_load_shp,"aeropuertos"))
+areas_silvestres_protegidas <- readRDS(sprintf(url_load_shp,"areas_silvestres_protegidas"))
+circuitos_turisticos <- readRDS(sprintf(url_load_shp,"circuitos_turisticos"))
+embalses <- readRDS(sprintf(url_load_shp,"embalses"))
+establecimiento_salud <- readRDS(sprintf(url_load_shp,"establecimiento_salud"))
+fluviometricas <- readRDS(sprintf(url_load_shp,"fluviometricas"))
+humedales <- readRDS(sprintf(url_load_shp,"humedales"))
+industria_forestal <- readRDS(sprintf(url_load_shp,"industria_forestal"))
+map_distrito <- readRDS(sprintf(url_load_shp,"map_distrito"))
+map_provincia <- readRDS(sprintf(url_load_shp,"map_provincia"))
+map_region <- readRDS(sprintf(url_load_shp,"map_region"))
+meteorologica <- readRDS(sprintf(url_load_shp,"meteorologica"))
+planta_aguas_servidas <- readRDS(sprintf(url_load_shp,"planta_aguas_servidas"))
+puentes <- readRDS(sprintf(url_load_shp,"puentes"))
+sedimentometricas <- readRDS(sprintf(url_load_shp,"sedimentometricas"))
+sello_calidad_turistica <- readRDS(sprintf(url_load_shp,"sello_calidad_turistica"))
+sendero_chile <- readRDS(sprintf(url_load_shp,"sendero_chile"))
+sitios_prioritarios <- readRDS(sprintf(url_load_shp,"sitios_prioritarios"))
 
 
 ### Catastros de Uso de Suelo y Vegetacion -----
@@ -86,29 +122,80 @@ m_uso_suelo
 
 ## Map with all layers ------
 
+## Function to add layers with a specific format
+# - layer: sf object (spatial vector)
+# - Title: Title to display on the map
+# - polygon form: "a" for polygon area (default), "p" for point and "l" for line
+add.Layer <- function(map,layer,title,features,polygon_form="a",...){
+  
+  polygon_form <- str_to_lower(polygon_form)
+  label_out <- f.create.labels(layer,title,features)
+  label_options <- labelOptions(
+    style = list("font-weight" = "normal", padding = "3px 8px"),
+    textsize = "12px",
+    direction = "auto")
+  
+  if (polygon_form=="a"){
+    addPolygons(map,data=layer,
+               label=label_out,
+               group=title,
+               labelOptions = label_options,
+               ...)
+  } else if(polygon_form=="p"){
+  addCircles(map,data=layer,
+             label=label_out,
+             group=title,
+             labelOptions = label_options,
+             ...)
+  } else {
+    addPolylines(map,data=layer,
+               label=label_out,
+               group=title,
+               labelOptions = label_options,
+               ...)
+  }
+  
+}
+
+
 m <- leaflet() %>% 
   addTiles() %>% 
   addPolygons(data=map_commune2,label = lab_commune,
               group = "Commune",color = "grey") %>% 
-  addPolygons(data=lagos_zone,label = lagos_zone$Nombre, 
-              group="North-Patagonian Lakes") %>% 
-  addPolygons(data=areas_pobladas,label = areas_pobladas$Localidad, 
-            group="Areas Pobladas",color="red") %>% 
-  addPolygons(data=glaciares, label = glaciares$NOMBRE, 
-            group="Glaciares", color="#00008B") %>% 
-  addCircles(data=atractivos_turisticos,label = atractivos_turisticos$NOMBRE, 
-            group="Atractivos Turisticos", color="green")
-
+  add.Layer(lagos_zone,"North-Patagonian Lakes",
+            features=c("Nombre","Tipo")) %>% 
+  add.Layer(areas_pobladas,"Areas Pobladas",
+            features = c("Localidad","Entidad"),
+            color="red") %>% 
+  add.Layer(glaciares,"Glaciares",
+            features = c("NOMBRE","CLASIFICA","VOL_M3","NOMB_CUEN"),
+            color="#00008B") %>% 
+  add.Layer(atractivos_turisticos,"Atractivos Turisticos",
+            features = c("NOMBRE","CATEGORIA","TIPO","PROPIEDAD"),
+            polygon_form = "p",
+            color="green") %>% 
+  add.Layer(planta_aguas_servidas,"Planta Aguas Servidas",
+            features = c("DESCRIPCIO","SISTEMA","TIP_TRATAM",
+                         "RECEPTOR","TIPO_RECEP","CARGA_NKT"),
+            polygon_form = "p",
+            color="brown") %>% 
+  add.Layer(circuitos_turisticos,"Circuitos Turisticos",
+            features = c("Circuito","Exten_km"),
+            polygon_form = "l",
+            color="red")
+  
+# Could automatize this part, don't know how yet
+groupsId <- c("Commune","North-Patagonian Lakes",
+              "Areas Pobladas","Glaciares",
+              "Atractivos Turisticos",
+              "Planta Aguas Servidas",
+              "Circuitos Turisticos")
 
 # create selectable layers
 m <- m %>% 
   addLayersControl(baseGroups = c("OpenStreetMap"),
-                   overlayGroups = c("Commune","North-Patagonian Lakes",
-                                     "Areas Pobladas","Glaciares",
-                                     "Atractivos Turisticos")) %>% 
-  hideGroup(c("Commune","North-Patagonian Lakes",
-              "Areas Pobladas","Glaciares",
-              "Atractivos Turisticos"))
+                   overlayGroups = groupsId) %>% 
+  hideGroup(groupsId[-2])
 m
 
 mapshot()
