@@ -3,7 +3,8 @@
 ## PBH Oct. 2021
 
 # Common functions and parameters
-# source("Scripts/00-Common.R", encoding = "UTF-8")
+source("Scripts/00-Common.R", encoding = "UTF-8")
+
 file_save <- "Figures/Population/%s.png"
 
 # LOAD DATA ---------
@@ -25,13 +26,23 @@ sum(pop_district$PERSONAS) # Check total population 17,574,003
 ## 2017 Population by commune ----
 pop_commune <- pop_district %>% 
   group_by(COMUNA) %>%
+  # mutate(PERSONAS=as.numeric(PUEBLO)) %>% # to compute number of PUEBLO easily
   summarize(pop=sum(PERSONAS,na.rm=T)) %>% 
   left_join(cod_commune)
 
 pop_commune$pop %>% sum()
 
+# pon region
+pop_commune %>% 
+  mutate(codigo_comuna=paste0(if_else(str_length(COMUNA)==4,"0",""),COMUNA)) %>% 
+  left_join(codigos_territoriales) %>% 
+  filter(nombre_region %in% c("Los Rios","La Araucania","Los Lagos")) %>% 
+  pull(pop) %>% sum()
+
 pop_commune_cll <- pop_commune %>% filter(COMUNA %in% comunes_cll_codes)
 pop_commune_cll$pop %>% sum()
+
+
 
 # FIGURES -------------
 pop_commune_cll %>% 
