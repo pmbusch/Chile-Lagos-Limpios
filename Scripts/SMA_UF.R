@@ -1,6 +1,5 @@
-## Analysis on SMA Data on RILES
+## Analysis on SMA Data on UF
 ## PBH March 2022
-# Riles: Residuos líiuidos industriales (water emissions)
 # UF: Unidad Fiscalizable (basic unit of a project)
 
 # LIBRARY AND PARAMETERS ------
@@ -14,63 +13,34 @@ url_file_sma <- sprintf(url_file,
 
 # LOAD DATA ----
 
-## Unidad Fiscalizable -----
-# We need the name of the UF of interest
 uf <- read_delim(sprintf(url_file_sma,"UF/UF_Instrumentos_Act2021-10-28.csv"),
                  delim=";",
                  locale = locale(encoding = "windows-1252"))
-uf <- uf %>%
-  filter((ComunaNombre %in% comunes_cll)|
-           (str_detect(ComunaNombre, "Bueno$")))
-nombres_uf <- unique(uf$Nombre)
-rm(uf)
-
-
-## RILES -----
-# Note: RPM: Resoluciones Programadas de Monitoreo (RPM)
-
-emisiones <- read_delim(sprintf(url_file_sma,
-                                "RILES/2020/EMISIONES/Emisiones2020-01_Act2021-09-09.csv"),
-                        delim=";",
-                        # col_types = "Dccccccccccdddcccdcdcccdddcccc",
-                        locale = locale(encoding = "UTF-16",
-                                        decimal_mark = ","))
+# names(uf)
 
 # DATA WRANGLING ----
 
-# Filter by UF of interest
-emisiones <- emisiones %>% 
-  filter(UnidadFiscalizable %in% nombres_uf)
+# filter by commune
+uf <- uf %>%
+  filter((ComunaNombre %in% comunes_cll)|
+           (str_detect(ComunaNombre, "Bueno$")))
+# unique(uf$ComunaNombre)
+# unique(uf$RegionNombre)
 
-table(emisiones$UnidadFiscalizable)
-# emisiones$ComunaNombre %>% unique()
-
-# emisiones %>% select(Latitud,Longitud) %>% skim_without_charts()
-
-# Filter locations with no lat/long coordinates
-emisiones <- emisiones %>% 
-  filter(!is.na(Latitud)) %>% filter(!is.na(Longitud))
-
-
+# filter only places with LatLong valid
+# uf %>% select(Latitud,Longitud) %>% skim_without_charts()
+# Some places have the lat/long mixed, we fixed that
+latlong_mixed <- c("CONSERVERA SACRAMENTO","CAJA DE COMPENSACION LOS HEROES",
+                   "CAMPING TOTORAL","EMPRESTITO PELLINES")
+uf <- uf %>% 
+  mutate(lat_aux=Latitud,
+         Latitud=if_else(Nombre %in% latlong_mixed,Longitud,Latitud),
+         Longitud=if_else(Nombre %in% latlong_mixed,lat_aux,Longitud),
+         lat_aux=NULL)
+rm(latlong_mixed)
 
 # create sf object
-emisiones <- emisiones %>% st_as_sf(coords=c("Longitud","Latitud"),crs=4326)
-
-
-# qque hay dentro?
-
-emisiones %>% 
-  filter(UnidadFiscalizable=="PISCICULTURA LONCOTRARO") %>% 
-  select(Parametro,Unidad) %>% table()
-
-
-emisiones %>% 
-  filter(Parametro %in% c("Coliformes Fecales o Termotolerantes",
-                          "Caudal")) %>% 
-  pull(UnidadFiscalizable) %>% table()
-
-# Need to convert Caudal units to m3/dia
-# MuestraParametro_Codigo
+uf <- uf %>% st_as_sf(coords=c("Longitud","Latitud"),crs=4326)
 
 # Factors
 # unique(uf$CategoriaEconomicaNombre)
@@ -78,9 +48,7 @@ emisiones %>%
 uf <- uf %>% mutate(CategoriaEconomicaNombre=as.factor(CategoriaEconomicaNombre))
 
 
-
 # MAP ----
-
 
 # If you want to use predefined palettes in the RColorBrewer package:
 # Call RColorBrewer::display.brewer.all() to see all possible palettes
@@ -92,11 +60,6 @@ labels_uf <- f.create.labels(uf,"UF",
                                "SubCategoriaEconomicaNombre",
                                "UnidadFiscalizableId",
                                "ComunaNombre"))
-
-
-mapview(emisiones)
-
-
 map_uf <- leaflet(uf) %>%
   addTiles() %>%
   addCircles(label=labels_uf,
@@ -108,8 +71,5 @@ map_uf <- leaflet(uf) %>%
 # map_uf
 mapshot(map_uf, "Figures/Maps/UF.html", selfcontained=F)
 rm(map_uf,labels_uf)
-
-
-
 
 ## EoF
