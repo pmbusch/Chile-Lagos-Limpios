@@ -3,7 +3,7 @@
 ## All previous shapefile layers are loaded and filtered in a different script
 ## PBH Dec. 2021
 
-# Load libraries and other useful common functions
+# Load libraries and other useful common functions -----
 source("Scripts/00-Common.R", encoding = "UTF-8")
 
 url_load_shp <- "Data/Spatial Data/%s.rds"
