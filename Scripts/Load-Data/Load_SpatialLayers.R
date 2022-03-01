@@ -1,29 +1,33 @@
 ## Loading and saving Spatial Layers (shapefile)
 ## Loading  of Spatial Layers (shapefile)
-## COnverting to a sf object with a common reference unit
+## Converting to a sf object with a common reference unit
 ## Subsetting the shapefile to the area of interest
 ## Saving into rds objects for posterior more easy use
 ## Excel contains detail on the source of each shapefile
 ## PBH Dec. 2021
 
+# LIBRARIES + PARAMETERS -----
+
 # Load libraries and other useful common functions
 source("Scripts/00-Common.R", encoding = "UTF-8")
 
-# Folder directions -----
+## Folder directions -----
 url_file_shp <- sprintf(url_file,
                         "Spatial Data/%s/%s/%s.shp")
 file_rds <- "Data/Spatial Data/%s.rds"
 
 
-# Common spatial overlay - 14 communes -----
+# BOUNDARIES -----
+
+## Commune ----
+# Common spatial overlay - 14 communes
 # We can use the 14 communes of interest to overlay spatially all objects
 # First we need to create it and visualize it
-
 map_commune2 <- st_transform(map_commune,"EPSG:4326") %>% 
   st_make_valid()
+saveRDS(map_commune2,sprintf(file_rds,"map_commune"))
 
-
-# Region -----
+## Region -----
 map_region <- chilemapas::generar_regiones() %>% st_as_sf() %>% 
   filter(codigo_region %in% c("09","10","14")) %>% 
   mutate(area_region=st_area(geometry) %>% as.numeric(),
@@ -42,7 +46,7 @@ rm(cod_territoriales_region)
 saveRDS(map_region,sprintf(file_rds,"map_region"))
 rm(map_region)
 
-# Provincia -----
+## Provincia -----
 map_provincia <- chilemapas::generar_provincias() %>% st_as_sf() %>% 
   filter(codigo_region %in% c("09","10","14")) %>% 
   mutate(area_provincia=st_area(geometry) %>% as.numeric(),
@@ -65,8 +69,7 @@ m; rm(m)
 saveRDS(map_provincia,sprintf(file_rds,"map_provincia"))
 rm(map_provincia)
 
-
-# Distrito censal -----
+## Distrito censal -----
 map_distrito <- mapa_zonas %>% st_as_sf() %>% 
   filter((codigo_comuna %in% comunes_cll_codes|
             codigo_comuna %in% comunes_cll_codes2)) %>% 
@@ -83,9 +86,10 @@ saveRDS(map_distrito,sprintf(file_rds,"map_distrito"))
 rm(map_distrito)
 
 
+# BIBLIOTECA CONGRESO NACIONAL -----
 folder <- "Biblioteca Congreso Nacional"
   
-# MASAS LACUSTRES ------
+## Masa Lacustre ------
 lagos <- st_read(sprintf(url_file_shp,
                          folder,"Masas_Lacustres","masas_lacustres"))
 
@@ -124,7 +128,7 @@ saveRDS(areas_pobladas,sprintf(file_rds,"areas_pobladas"))
 rm(areas_pobladas)
 
 
-### Aeropuertos -----
+## Aeropuertos -----
 aeropuertos <- st_read(sprintf(url_file_shp,folder,
                              "Aeropuertos",
                              "Aeropuertos"))
@@ -139,7 +143,7 @@ saveRDS(aeropuertos,sprintf(file_rds,"aeropuertos"))
 rm(aeropuertos)
 
 
-### Areas silvestres protegidas por el estado para todo Chile -----
+## Areas silvestres protegidas por el estado para todo Chile -----
 areas_silvestres_protegidas <- st_read(sprintf(url_file_shp,folder,
                              "Snaspe",
                              "snaspe"))
@@ -156,9 +160,10 @@ saveRDS(areas_silvestres_protegidas,sprintf(file_rds,
                                             "areas_silvestres_protegidas"))
 rm(areas_silvestres_protegidas)
 
-
-### Glaciares -----
+# IDE ----
 folder <- "IDE"
+
+## Glaciares -----
 glaciares <- st_read(sprintf(url_file_shp,folder,
                              "IPG2014","IPG2014"))
 
@@ -176,7 +181,7 @@ glaciares <- st_filter(glaciares,map_commune2)
 saveRDS(glaciares,sprintf(file_rds,"glaciares"))
 rm(glaciares)
 
-### Atractivos Turisticos Nacionales -----
+## Atractivos Turisticos Nacionales -----
 atractivos_turisticos <- st_read(sprintf(url_file_shp,folder,
                                          "atractivos_turisticos_nacional_2020",
                                          "ATRACTIVOS_TUR+STICOS_NACIONAL_2020"))
@@ -190,7 +195,7 @@ atractivos_turisticos <- st_filter(atractivos_turisticos,map_commune2)
 saveRDS(atractivos_turisticos,sprintf(file_rds,"atractivos_turisticos"))
 rm(atractivos_turisticos)
 
-### Plantas de Tratamiento de Aguas Servidas -----
+## Plantas de Tratamiento de Aguas Servidas -----
 planta_aguas_servidas <- st_read(sprintf(url_file_shp,folder,
                                          "PTAS_Sirgas19s",
                                          "PTAS_Sirgas19s_VF"))
@@ -204,7 +209,7 @@ planta_aguas_servidas <- st_filter(planta_aguas_servidas,map_commune2)
 saveRDS(planta_aguas_servidas,sprintf(file_rds,"planta_aguas_servidas"))
 rm(planta_aguas_servidas)
 
-### Humedales 2015-----
+## Humedales 2015-----
 humedales <- st_read(sprintf(url_file_shp,folder,
                                         "Humedales_2015",
                                         "Inventario_plataforma"))
@@ -218,7 +223,7 @@ humedales <- st_filter(humedales,map_commune2)
 saveRDS(humedales,sprintf(file_rds,"humedales"))
 rm(humedales)
 
-### industria_forestal_2018-----
+## industria_forestal_2018-----
 industria_forestal <- st_read(sprintf(url_file_shp,folder,
                              "industria_forestal_2018",
                              "industria_forestal_2018"))
@@ -232,7 +237,7 @@ industria_forestal <- st_filter(industria_forestal,map_commune2)
 saveRDS(industria_forestal,sprintf(file_rds,"industria_forestal"))
 rm(industria_forestal)
 
-### Estaciones Meteorologicas-----
+## Estaciones Meteorologicas-----
 meteorologica <- st_read(sprintf(url_file_shp,folder,
                                  "Meteorologicas",
                                  "Meteorologicas"))
@@ -246,7 +251,7 @@ meteorologica <- st_filter(meteorologica,map_commune2)
 saveRDS(meteorologica,sprintf(file_rds,"meteorologica"))
 rm(meteorologica)
 
-### Embalses 2016-----
+## Embalses 2016-----
 embalses <- st_read(sprintf(url_file_shp,folder,
                              "Embalses_DGA_DOH_2016",
                              "Embalses_DGA_DOH_2016"))
@@ -260,8 +265,7 @@ embalses <- st_filter(embalses,map_commune2)
 saveRDS(embalses,sprintf(file_rds,"embalses"))
 rm(embalses)
 
-
-### Establecimientos Salud-----
+## Establecimientos Salud-----
 establecimiento_salud <- st_read(sprintf(url_file_shp,folder,
                              "establec_salud_14_mayo_2021",
                              "Establec_Salud_14_Mayo_2021"))
@@ -275,7 +279,7 @@ establecimiento_salud <- st_filter(establecimiento_salud,map_commune2)
 saveRDS(establecimiento_salud,sprintf(file_rds,"establecimiento_salud"))
 rm(establecimiento_salud)
 
-### Estaciones sedimentometricas -----
+## Estaciones sedimentometricas -----
 sedimentometricas <- st_read(sprintf(url_file_shp,folder,
                              "Sedimentometricas",
                              "Sedimentometricas"))
@@ -290,7 +294,7 @@ saveRDS(sedimentometricas,sprintf(file_rds,"sedimentometricas"))
 rm(sedimentometricas)
 
 
-### Estaciones Fluviometricas -----
+## Estaciones Fluviometricas -----
 fluviometricas <- st_read(sprintf(url_file_shp,folder,
                              "Fluviometricas",
                              "Fluviometricas"))
@@ -305,7 +309,7 @@ saveRDS(fluviometricas,sprintf(file_rds,"fluviometricas"))
 rm(fluviometricas)
 
 
-### Sitios prioritarios -----
+## Sitios prioritarios -----
 sitios_prioritarios <- st_read(sprintf(url_file_shp,folder,
                              "sitios_prioritarios",
                              "Sitios_Prioritarios"))
@@ -320,7 +324,7 @@ saveRDS(sitios_prioritarios,sprintf(file_rds,"sitios_prioritarios"))
 rm(sitios_prioritarios)
 
 
-### Sello de Calidad Turistica Alojamiento -----
+## Sello de Calidad Turistica Alojamiento -----
 sello_calidad_turistica <- st_read(sprintf(url_file_shp,folder,
                              "Sellos_de_calidad_turistica_alojamiento",
                              "SELLO CALIDAD TURÍSTICA_ALOJAMIENTO_WGS198419S_ABRIL18"))
@@ -335,7 +339,7 @@ saveRDS(sello_calidad_turistica,sprintf(file_rds,"sello_calidad_turistica"))
 rm(sello_calidad_turistica)
 
 
-### Sendero de Chile -----
+## Sendero de Chile -----
 sendero_chile <- st_read(sprintf(url_file_shp,folder,
                              "Sendero_Chile",
                              "Sendero_de_Chile"))
@@ -350,7 +354,7 @@ saveRDS(sendero_chile,sprintf(file_rds,"sendero_chile"))
 rm(sendero_chile)
 
 
-### Circuitos_Turisticos -----
+## Circuitos_Turisticos -----
 circuitos_turisticos <- st_read(sprintf(url_file_shp,folder,
                              "Circuitos_Turísticos",
                              "Circuitos_Turisticos_2015"))
@@ -365,7 +369,7 @@ saveRDS(circuitos_turisticos,sprintf(file_rds,"circuitos_turisticos"))
 rm(circuitos_turisticos)
 
 
-### Censo 2007 Plantaciones Forestales-----
+## Censo 2007 Plantaciones Forestales-----
 plantaciones_forestales <- st_read(sprintf(url_file_shp,folder,
                              "cc_forestal",
                              "cc_forestal"))
@@ -380,7 +384,7 @@ saveRDS(plantaciones_forestales,sprintf(file_rds,"plantaciones_forestales"))
 rm(plantaciones_forestales)
 
 
-### Censo 2007 Maquinaria Forestal ----
+## Censo 2007 Maquinaria Forestal ----
 maquinaria_forestal <- st_read(sprintf(url_file_shp,folder,
                              "cc_mforest",
                              "cc_mforest"))
@@ -395,25 +399,7 @@ saveRDS(maquinaria_forestal,sprintf(file_rds,"maquinaria_forestal"))
 rm(maquinaria_forestal)
 
 
-## Puentes ----------
 
-## TO DO: Get attributes: https://stackoverflow.com/questions/50775357/how-to-read-in-kml-file-properly-in-r-or-separate-out-lumped-variables-into-col
-
-folder <- "MOP"
-
-puentes <- st_read(sprintf(url_file_shp,folder,
-                                       "Puentes.kml",
-                                       "Puentes") %>% 
-                     str_replace("shp","kml"))
-puentes <- st_transform(puentes,"EPSG:4326") %>% 
-  st_make_valid()
-
-# Spatial filter using 14 communes - to obtain the 23 lakes
-puentes <- st_filter(puentes,map_commune2)
-
-# Save layer for use in other scripts
-saveRDS(puentes,sprintf(file_rds,"puentes"))
-rm(puentes)
 
 
 ### Predios ----
@@ -443,12 +429,66 @@ uso_suelo <- st_transform(uso_suelo,"EPSG:4326") %>% st_make_valid()
 # Spatial filter using 14 communes - to obtain the 23 lakes
 uso_suelo <- st_filter(uso_suelo,map_commune2)
 
+
+### Catastros de Uso de Suelo y Vegetacion -----
+uso_suelo <- readRDS(sprintf(url_load_shp,"uso_suelo"))
+
+table(uso_suelo$USO)
+m_uso_suelo <- f.interactive.map(uso_suelo, uso_suelo$USO)
+m_uso_suelo
+
 # Save layer for use in other scripts
 saveRDS(uso_suelo,sprintf(file_rds,"uso_suelo"))
 rm(uso_suelo)
 
 
-# clean WS ----
+# MOP ----
+folder <- "MOP"
+
+
+## Puentes ----------
+
+## TO DO: Get attributes: https://stackoverflow.com/questions/50775357/how-to-read-in-kml-file-properly-in-r-or-separate-out-lumped-variables-into-col
+puentes <- st_read(sprintf(url_file_shp,folder,
+                           "Puentes.kml",
+                           "Puentes") %>% 
+                     str_replace("shp","kml"))
+puentes <- st_transform(puentes,"EPSG:4326") %>% 
+  st_make_valid()
+
+# Spatial filter using 14 communes - to obtain the 23 lakes
+puentes <- st_filter(puentes,map_commune2)
+
+# Save layer for use in other scripts
+saveRDS(puentes,sprintf(file_rds,"puentes"))
+rm(puentes)
+
+# CONADI -----
+
+folder <- "Conadi"
+
+## Comunidades Indigenas -----
+comunidad_indigena <- st_read(sprintf(url_file_shp,folder,
+                             "comunidades_act__julio_2021","comunidades_act__julio_2021"))
+
+# filter by region first
+comunidad_indigena <- comunidad_indigena %>% 
+  filter(REGI_N %in% c("X REGIÓN DE LOS LAGOS",
+                       "XIV REGIÓN DE LOS RÍOS",
+                       "IX REGION DE LA ARAUCANIA"))
+# table(comunidad_indigena$REGI_N)
+
+comunidad_indigena <- st_transform(comunidad_indigena,"EPSG:4326") %>% st_make_valid()
+
+# Spatial filter using 14 communes - to obtain the 23 lakes
+comunidad_indigena <- st_filter(comunidad_indigena,map_commune2)
+
+# Save layer for use in other scripts
+saveRDS(comunidad_indigena,sprintf(file_rds,"comunidad_indigena"))
+rm(comunidad_indigena)
+
+
+# CLEAN WS ----
 rm(folder,file_rds,url_file_shp)
 
 ## EoF

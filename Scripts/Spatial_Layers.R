@@ -8,8 +8,6 @@ source("Scripts/00-Common.R", encoding = "UTF-8")
 
 url_load_shp <- "Data/Spatial Data/%s.rds"
 
-
-
 ## Spatial Interactive Visualization function ----
 # Create spatial layer map with labels, to quickly visualize it
 # Inputs: 
@@ -73,13 +71,35 @@ f.create.labels <- function(layer,title, features){
 }
 
 
-## Communes  ------
+## Communes  and labels ------
 
 map_commune2 <- st_transform(map_commune,"EPSG:4326") %>% 
   st_make_valid()
 lab_commune <- map_commune2 %>% 
   left_join(codigos_territoriales) %>% 
   pull(nombre_comuna)
+lab_commune <- paste0("<strong>",lab_commune,"</strong>") %>% 
+  lapply(HTML)
+
+
+codigos_territoriales_region <- codigos_territoriales %>% 
+  group_by(codigo_region,nombre_region) %>% tally
+lab_region <- map_region %>% 
+  left_join(codigos_territoriales_region) %>% 
+  pull(nombre_region)
+lab_region <- paste0("<strong>",lab_region,"</strong>") %>% 
+  lapply(HTML)
+rm(codigos_territoriales_region)
+
+codigos_territoriales_provincia <- codigos_territoriales %>% 
+  group_by(codigo_provincia,nombre_provincia) %>% tally
+lab_provincia <- map_provincia %>% 
+  left_join(codigos_territoriales_provincia) %>% 
+  pull(nombre_provincia)
+lab_provincia <- paste0("<strong>",lab_provincia,"</strong>") %>% 
+  lapply(HTML)
+rm(codigos_territoriales_provincia)
+
 m_commune <- f.interactive.map(map_commune2,lab_commune) 
 # rm(lab_commune)
 m_commune
@@ -109,16 +129,10 @@ sedimentometricas <- readRDS(sprintf(url_load_shp,"sedimentometricas"))
 sello_calidad_turistica <- readRDS(sprintf(url_load_shp,"sello_calidad_turistica"))
 sendero_chile <- readRDS(sprintf(url_load_shp,"sendero_chile"))
 sitios_prioritarios <- readRDS(sprintf(url_load_shp,"sitios_prioritarios"))
+comunidad_indigena <- readRDS(sprintf(url_load_shp,"comunidad_indigena"))
 
 
-### Catastros de Uso de Suelo y Vegetacion -----
-uso_suelo <- readRDS(sprintf(url_load_shp,"uso_suelo"))
-
-table(uso_suelo$USO)
-m_uso_suelo <- f.interactive.map(uso_suelo, uso_suelo$USO)
-m_uso_suelo
-
-
+## FEATURE DATA -------
 
 ## Map with all layers ------
 
@@ -126,8 +140,13 @@ m_uso_suelo
 # - layer: sf object (spatial vector)
 # - Title: Title to display on the map
 # - polygon form: "a" for polygon area (default), "p" for point and "l" for line
-add.Layer <- function(map,layer,title,features,polygon_form="a",...){
+add.Layer <- function(map,layer,
+                      title,features,
+                      polygon_form="a",
+                      group_l="default",
+                      ...){
   
+  group_l <- if (group_l=="default") title else group_l
   polygon_form <- str_to_lower(polygon_form)
   label_out <- f.create.labels(layer,title,features)
   label_options <- labelOptions(
@@ -138,19 +157,19 @@ add.Layer <- function(map,layer,title,features,polygon_form="a",...){
   if (polygon_form=="a"){
     addPolygons(map,data=layer,
                label=label_out,
-               group=title,
+               group=group_l,
                labelOptions = label_options,
                ...)
   } else if(polygon_form=="p"){
   addCircles(map,data=layer,
              label=label_out,
-             group=title,
+             group=group_l,
              labelOptions = label_options,
              ...)
   } else {
     addPolylines(map,data=layer,
                label=label_out,
-               group=title,
+               group=group_l,
                labelOptions = label_options,
                ...)
   }
@@ -158,15 +177,29 @@ add.Layer <- function(map,layer,title,features,polygon_form="a",...){
 }
 
 
+
 m <- leaflet() %>% 
   addTiles() %>% 
+  add.Layer(lagos_zone,lagos_zone$Nombre,
+            features=c("Tipo"),
+            group_l = "North-Patagonian Lakes") %>% 
   addPolygons(data=map_commune2,label = lab_commune,
               group = "Commune",color = "grey") %>% 
-  add.Layer(lagos_zone,"North-Patagonian Lakes",
-            features=c("Nombre","Tipo")) %>% 
+  addPolygons(data=map_provincia,label = lab_provincia,
+              group = "Province",color = "grey") %>% 
+  addPolygons(data=map_region,label = lab_region,
+              group = "Region",color = "grey") %>% 
   add.Layer(areas_pobladas,"Areas Pobladas",
             features = c("Localidad","Entidad"),
             color="red") %>% 
+  # add.Layer(humedales,"Humedales",
+  #           features = c("Nombre","Clase","SubClase","AreaProteg",
+  #                        "Nombre_AP","Designacio"),
+  #           color="green") %>% 
+  add.Layer(comunidad_indigena,"Comunidades Indigenas",
+            features = c("COMUNIDAD","REGISTRO","FECHA"),
+            color="blue",
+            polygon_form = "p") %>%
   add.Layer(glaciares,"Glaciares",
             features = c("NOMBRE","CLASIFICA","VOL_M3","NOMB_CUEN"),
             color="#00008B") %>% 
@@ -179,26 +212,50 @@ m <- leaflet() %>%
                          "RECEPTOR","TIPO_RECEP","CARGA_NKT"),
             polygon_form = "p",
             color="brown") %>% 
+  add.Layer(aeropuertos,"Aeropuertos y aerodromos",
+            features = c("Aerodromo","categoría"),
+            polygon_form = "p") %>% 
   add.Layer(circuitos_turisticos,"Circuitos Turisticos",
             features = c("Circuito","Exten_km"),
             polygon_form = "l",
-            color="red")
+            color="red") %>% 
+  add.Layer(embalses,"Embalses",
+            features=c("NOMBRE"),
+            polygon_form = "p",color="blue") %>% 
+  add.Layer(meteorologica,"Estaciones Meteorologicas",
+            features = c("NOMBRE","NOM_CUEN","NOM_SUBC"),
+            polygon_form = "p",color="black") %>%
+  add.Layer(fluviometricas,"Estaciones Fluviometricas",
+            features = c("NOMBRE","NOM_CUEN","NOM_SUBC"),
+            polygon_form = "p",color="black") %>%
+  add.Layer(sedimentometricas,"Estaciones Sedimentometricas",
+            features = c("NOMBRE","NOM_CUEN","NOM_SUBC"),
+            polygon_form = "p",color="black")
+
   
 # Could automatize this part, don't know how yet
-groupsId <- c("Commune","North-Patagonian Lakes",
-              "Areas Pobladas","Glaciares",
+groupsId <- c("North-Patagonian Lakes",
+              "Commune","Province","Region",
+              "Areas Pobladas",
+              # "Humedales",
+              "Comunidades Indigenas",
+              "Glaciares",
               "Atractivos Turisticos",
               "Planta Aguas Servidas",
-              "Circuitos Turisticos")
+              "Aeropuertos y aerodromos",
+              "Circuitos Turisticos",
+              "Embalses",
+              "Estaciones Meteorologicas",
+              "Estaciones Fluviometricas",
+              "Estaciones Sedimentometricas")
 
 # create selectable layers
 m <- m %>% 
   addLayersControl(baseGroups = c("OpenStreetMap"),
                    overlayGroups = groupsId) %>% 
-  hideGroup(groupsId[-2])
+  hideGroup(groupsId[-1])
 m
 
-mapshot()
 mapshot(m, "Figures/Maps/SpatialLayers.html", selfcontained=F)
 rm(m)
 
