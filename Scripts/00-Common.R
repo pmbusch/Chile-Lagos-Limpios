@@ -5,7 +5,7 @@
 
 ## Libraries --------------
 list_libraries <- c("tidyverse", "kableExtra","chilemapas","lwgeom","sf","htmltools",
-                    "flextable", "filesstrings","purrr", "readr", "extrafont",
+                    "flextable", "filesstrings","purrr", "readr","extrafont",
                     "stringr", "ggmap", "readxl", "leaflet", "mapview", "purrr",
                     "skimr", "readr", "patchwork", "ggridges", "lubridate",
                     "ggrepel","mapview","officer")

@@ -20,6 +20,8 @@ lab_commune <- paste0("<strong>",lab_commune,"</strong>") %>%
   lapply(HTML)
 
 
+map_provincia <- readRDS(sprintf(url_load_shp,"map_provincia"))
+map_region <- readRDS(sprintf(url_load_shp,"map_region"))
 codigos_territoriales_region <- codigos_territoriales %>% 
   group_by(codigo_region,nombre_region) %>% tally
 lab_region <- map_region %>% 
@@ -58,8 +60,6 @@ fluviometricas <- readRDS(sprintf(url_load_shp,"fluviometricas"))
 humedales <- readRDS(sprintf(url_load_shp,"humedales"))
 industria_forestal <- readRDS(sprintf(url_load_shp,"industria_forestal"))
 map_distrito <- readRDS(sprintf(url_load_shp,"map_distrito"))
-map_provincia <- readRDS(sprintf(url_load_shp,"map_provincia"))
-map_region <- readRDS(sprintf(url_load_shp,"map_region"))
 meteorologica <- readRDS(sprintf(url_load_shp,"meteorologica"))
 planta_aguas_servidas <- readRDS(sprintf(url_load_shp,"planta_aguas_servidas"))
 puentes <- readRDS(sprintf(url_load_shp,"puentes"))
@@ -73,8 +73,11 @@ comunidad_indigena <- readRDS(sprintf(url_load_shp,"comunidad_indigena"))
 ## FEATURE DATA -------
 
 ## Map with all layers ------
+# Tiles available: see https://leaflet-extras.github.io/leaflet-providers/preview/
+
 m <- leaflet() %>% 
-  addTiles() %>% 
+  # addTiles() %>% %>% 
+  addTiles(urlTemplate = 'https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}') %>% 
   add.Layer(lagos_zone,lagos_zone$Nombre,
             features=c("Tipo"),
             group_l = "North-Patagonian Lakes") %>% 

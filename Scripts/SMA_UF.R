@@ -61,7 +61,8 @@ labels_uf <- f.create.labels(uf,"UF",
                                "UnidadFiscalizableId",
                                "ComunaNombre"))
 map_uf <- leaflet(uf) %>%
-  addTiles() %>%
+  # addTiles() %>%
+  addTiles(urlTemplate="https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}") %>% 
   addCircles(label=labels_uf,
              color=~pal(CategoriaEconomicaNombre),
              labelOptions=label_options) %>% 
