@@ -47,6 +47,39 @@ uf <- uf %>% st_as_sf(coords=c("Longitud","Latitud"),crs=4326)
 # unique(uf$SubCategoriaEconomicaNombre)
 uf <- uf %>% mutate(CategoriaEconomicaNombre=as.factor(CategoriaEconomicaNombre))
 
+# Table: # of projects per communee ---------
+
+# number of projects per commune
+n_fuentes <- uf %>% 
+  group_by(RegionNombre,ComunaNombre,CategoriaEconomicaNombre) %>% 
+  tally()
+
+n_fuentes$geometry <- NULL
+
+# of projects per commune
+n_projects <- n_fuentes %>% ungroup() %>% 
+  pivot_wider(names_from = CategoriaEconomicaNombre, values_from = n) %>% 
+  replace(is.na(.), 0) %>%
+  mutate(sum = rowSums(across(where(is.numeric)))) %>% # sum of columns: Total
+  janitor::adorn_totals("row") %>% 
+  rename(Region=RegionNombre,Comuna=ComunaNombre,Total=sum)
+
+
+# table
+n_projects %>%
+  select(Region,Comuna,Total,`Pesca y Acuicultura`,
+         `Infraestructura Portuaria`,Forestal,Agroindustrias,
+         `Saneamiento Ambiental`) %>% 
+  flextable() %>% 
+  autofit() %>% 
+  merge_v(j=1) %>%
+  hline(i=c(2,8,13), part="body") %>% 
+  vline(j=3) %>% 
+  bold(i=14) %>% bold(part="header")
+
+rm(n_fuentes,n_projects)
+
+
 
 # MAP ----
 
