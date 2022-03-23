@@ -1,7 +1,7 @@
 ---
 title: "SMA-RILES"
 author: "Pablo Busch"
-date: "3/14/2022"
+date: "3/22/2022"
 output:
   html_document:
     df_print: paged
@@ -23,7 +23,7 @@ knitr::opts_chunk$set(fig.pos = 'H',
 
 This document provides an analysis on the data for RILES (water emissions from Industrial Sources or "Residuos liquidos industriales", available to download here [https://snifa.sma.gob.cl/DatosAbiertos]). \newline
 
-The data is reported at UF (Unidad Fiscalizable) level, which consist on the basic unit of the SMA (Superintendencia del Medio Ambiente) to group projects.
+The data is reported at UF (Unidad Fiscalizable) level, which consist on the basic unit of the SMA (Superintendencia del Medio Ambiente) to identify common approved projects associated with the same company.
 
 
 ```{r}
@@ -61,6 +61,42 @@ $$
 
 Where concentration normalized is simply the concentration expressed in terms of kg per $m^3$. Note, for parameters dimensionless, like T° or pH, we can only aim to report a weighted (by water flow) average per month.
 
+# Analysis
+
+## Number of projects with Water Emissions 
+
+```{r}
+
+# number of projects per commune
+n_fuentes <- emisiones %>% 
+  group_by(RegionNombre,ComunaNombre,NombreCategoria,RazonSocial,Planta) %>% 
+  tally()
+
+n_fuentes$geometry <- NULL
+
+
+# of projects per commune
+n_projects <- n_fuentes %>% ungroup() %>% 
+  group_by(RegionNombre,ComunaNombre,NombreCategoria) %>% 
+  tally() %>% 
+  pivot_wider(names_from = NombreCategoria, values_from = n) %>% 
+  # mutate(sum = rowSums(across(where(is.numeric)))) %>% # sum of columns: Total
+  janitor::adorn_totals("row") %>% 
+  rename(Region=RegionNombre,Comuna=ComunaNombre)
+
+n_projects %>% 
+  flextable() %>% 
+  autofit() %>% 
+  merge_v(j=1) %>% 
+  hline(i=c(2,7,11), part="body") %>% 
+  bold(i=12) %>% bold(part="header")
+
+rm(n_fuentes,n_projects)
+```
+
+We observe that most of the projects with declared water emissions correspond to fishing and aquaculture. Lather in this document, a map is provided to see the location of each project.
+
+
 ## Example: Nitrógeno Total  Kjeldahl
 
 Let's estimate the water emissions for one parameter: Total Kjeldahl Nitrogen. As the same plant could have multiple samples we first take the average concentration and average water flow.
@@ -86,11 +122,6 @@ emisiones_n <- emisiones_n %>%
 emisiones_n$NombreCategoria <- factor(emisiones_n$NombreCategoria)
 ```
 
-
-# Data Visualization
-
-## Plots
-
 Let's check at the total emissions for 2020:
 
 ```{r}
@@ -110,7 +141,7 @@ emisiones_n %>%
 
 First a map of all sources that have water emissions in the zone.
 
-```{r}
+```{r, fig.width=9, fig.height=6}
 # MAP ----
 
 # Summarize info of each emission source
@@ -133,7 +164,7 @@ m_fuentes
 
 Let's look at a map with the emissions sources for Total Kjeldahl Nitrogen:
 
-```{r}
+```{r, fig.width=9, fig.height=6}
 Emisiones_Nitrogeno_2020 <- emisiones_n %>% 
     group_by(NombreCategoria,RazonSocial,Planta,
              PuntoDeDescarga,RegionNombre,ComunaNombre) %>% 
