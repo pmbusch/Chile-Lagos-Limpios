@@ -219,6 +219,10 @@ humedales <- st_transform(humedales,"EPSG:4326") %>%
 # Spatial filter using 14 communes - to obtain the 23 lakes
 humedales <- st_filter(humedales,map_commune2)
 
+# Layer contains all body waters, we are only interested on wetlands (humedal)
+humedales <- humedales %>% 
+  filter(Clase=="Otros humedales")
+
 # Save layer for use in other scripts
 saveRDS(humedales,sprintf(file_rds,"humedales"))
 rm(humedales)
@@ -411,6 +415,9 @@ predios <- st_transform(predios,"EPSG:4326") %>%
 
 # Spatial filter using 14 communes - to obtain the 23 lakes
 predios <- st_filter(predios,map_commune2)
+
+names(predios)
+predios %>% group_by(COMUNA) %>% tally()
 
 m <- f.interactive.map(predios,predios$COMUNA)
 m; rm(m)

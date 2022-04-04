@@ -68,6 +68,7 @@ sello_calidad_turistica <- readRDS(sprintf(url_load_shp,"sello_calidad_turistica
 sendero_chile <- readRDS(sprintf(url_load_shp,"sendero_chile"))
 sitios_prioritarios <- readRDS(sprintf(url_load_shp,"sitios_prioritarios"))
 comunidad_indigena <- readRDS(sprintf(url_load_shp,"comunidad_indigena"))
+humedales <- readRDS(sprintf(url_load_shp,"humedales"))
 
 
 ## FEATURE DATA -------
@@ -76,58 +77,79 @@ comunidad_indigena <- readRDS(sprintf(url_load_shp,"comunidad_indigena"))
 # Tiles available: see https://leaflet-extras.github.io/leaflet-providers/preview/
 
 m <- leaflet() %>% 
-  # addTiles() %>% %>% 
-  addTiles(urlTemplate = 'https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}') %>% 
+  addTiles() %>% 
+  # addTiles(urlTemplate = 'https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}') %>% 
   add.Layer(lagos_zone,lagos_zone$Nombre,
             features=c("Tipo"),
-            group_l = "North-Patagonian Lakes") %>% 
+            group_l = "North-Patagonian Lakes",
+            color="blue") %>% 
   addPolygons(data=map_commune2,label = lab_commune,
               group = "Commune",color = "grey") %>% 
+  addLegend(values = 1, group = "Commune",position = "bottomright", 
+            labels = "Commune",colors= "grey") %>% 
   addPolygons(data=map_provincia,label = lab_provincia,
               group = "Province",color = "grey") %>% 
+  addLegend(values = 1, group = "Province",position = "bottomright", 
+            labels = "Province",colors= "grey") %>%
   addPolygons(data=map_region,label = lab_region,
               group = "Region",color = "grey") %>% 
+  addLegend(values = 1, group = "Region",position = "bottomright", 
+            labels = "Region",colors= "grey") %>%
   add.Layer(areas_pobladas,"Areas Pobladas",
             features = c("Localidad","Entidad"),
+            source="Biblioteca Congreso Nacional",
             color="red") %>% 
-  # add.Layer(humedales,"Humedales",
-  #           features = c("Nombre","Clase","SubClase","AreaProteg",
-  #                        "Nombre_AP","Designacio"),
-  #           color="green") %>% 
+  add.Layer(humedales,"Humedales",
+            features = c("Nombre","Clase","SubClase","AreaProteg",
+                         "Nombre_AP","Designacio"),
+            source="IDE-Bienes Nacionales, 2015",
+            color="green") %>%
   add.Layer(comunidad_indigena,"Comunidades Indigenas",
             features = c("COMUNIDAD","REGISTRO","FECHA"),
+            source="CONADI, 2021",
             color="blue",
             polygon_form = "p") %>%
   add.Layer(glaciares,"Glaciares",
             features = c("NOMBRE","CLASIFICA","VOL_M3","NOMB_CUEN"),
-            color="#00008B") %>% 
+            source="IDE-Bienes Nacionales, 2002",
+            color="#00008B") %>%
   add.Layer(atractivos_turisticos,"Atractivos Turisticos",
             features = c("NOMBRE","CATEGORIA","TIPO","PROPIEDAD"),
             polygon_form = "p",
+            source="IDE-Bienes Nacionales",
             color="green") %>% 
   add.Layer(planta_aguas_servidas,"Planta Aguas Servidas",
             features = c("DESCRIPCIO","SISTEMA","TIP_TRATAM",
                          "RECEPTOR","TIPO_RECEP","CARGA_NKT"),
             polygon_form = "p",
+            source="IDE-Bienes Nacionales",
             color="brown") %>% 
   add.Layer(aeropuertos,"Aeropuertos y aerodromos",
             features = c("Aerodromo","categoría"),
-            polygon_form = "p") %>% 
+            polygon_form = "p",
+            source="Biblioteca Congreso Nacional",
+            color="black") %>% 
   add.Layer(circuitos_turisticos,"Circuitos Turisticos",
             features = c("Circuito","Exten_km"),
             polygon_form = "l",
+            source="IDE-Bienes Nacionales",
             color="red") %>% 
   add.Layer(embalses,"Embalses",
             features=c("NOMBRE"),
-            polygon_form = "p",color="blue") %>% 
+            polygon_form = "p",
+            source="IDE-Bienes Nacionales, 2016",
+            color="blue") %>% 
   add.Layer(meteorologica,"Estaciones Meteorologicas",
             features = c("NOMBRE","NOM_CUEN","NOM_SUBC"),
+            source="IDE-Bienes Nacionales",
             polygon_form = "p",color="black") %>%
   add.Layer(fluviometricas,"Estaciones Fluviometricas",
             features = c("NOMBRE","NOM_CUEN","NOM_SUBC"),
+            source="IDE-Bienes Nacionales",
             polygon_form = "p",color="black") %>%
   add.Layer(sedimentometricas,"Estaciones Sedimentometricas",
             features = c("NOMBRE","NOM_CUEN","NOM_SUBC"),
+            source="IDE-Bienes Nacionales",
             polygon_form = "p",color="black")
 
   
@@ -135,7 +157,7 @@ m <- leaflet() %>%
 groupsId <- c("North-Patagonian Lakes",
               "Commune","Province","Region",
               "Areas Pobladas",
-              # "Humedales",
+              "Humedales",
               "Comunidades Indigenas",
               "Glaciares",
               "Atractivos Turisticos",
@@ -152,7 +174,9 @@ m <- m %>%
   addLayersControl(baseGroups = c("OpenStreetMap"),
                    overlayGroups = groupsId) %>% 
   hideGroup(groupsId[-1])
+
 m
+
 
 mapshot(m, "Figures/Maps/SpatialLayers.html", selfcontained=F)
 rm(m)

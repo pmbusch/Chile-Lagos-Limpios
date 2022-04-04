@@ -43,7 +43,8 @@ f.interactive.map <- function(map_object, label_vector, polygon_form="a",...){
 # - Layer: sf object, to get the feature
 # - Title of the layer
 # - Features: Vector of character of features to print
-f.create.labels <- function(layer,title, features){
+# - Source: Source of the layer, to include in the map
+f.create.labels <- function(layer,title, features, source=""){
   
   # Extract features to print from the layer
   features_data <- layer %>% as.data.frame() %>% dplyr::select(features)
@@ -58,6 +59,11 @@ f.create.labels <- function(layer,title, features){
   
   # Add title
   feat2$x <- paste0("<strong>",title,"</strong><br/>",feat2$x)
+  
+  # Add source
+  source <- ifelse(source=="","",
+                   paste0("<br/> <i>Fuente: ",source,"</i>"))
+  feat2$x <- paste0(feat2$x,source)
   
   # Convert to HTML to incorporate into the map
   label <- feat2$x %>% as.list() %>% lapply(HTML)
@@ -79,34 +85,47 @@ label_options <- labelOptions(
 
 add.Layer <- function(map,layer,
                       title,features,
+                      source="",
                       polygon_form="a",
                       group_l="default",
+                      color="black",
                       ...){
   
   group_l <- if (group_l=="default") title else group_l
   polygon_form <- str_to_lower(polygon_form)
-  label_out <- f.create.labels(layer,title,features)
+  label_out <- f.create.labels(layer,title,features,source = source)
+  
+  # feature to return
+  feat_return <- map
   
   if (polygon_form=="a"){
-    addPolygons(map,data=layer,
+    feat_return <- addPolygons(map,data=layer,
                 label=label_out,
                 group=group_l,
                 labelOptions = label_options,
+                color = color,
                 ...)
   } else if(polygon_form=="p"){
-    addCircles(map,data=layer,
+    feat_return <- addCircles(map,data=layer,
                label=label_out,
                group=group_l,
                labelOptions = label_options,
+               color = color,
                ...)
   } else {
-    addPolylines(map,data=layer,
+    feat_return <- addPolylines(map,data=layer,
                  label=label_out,
                  group=group_l,
                  labelOptions = label_options,
+                 color = color,
                  ...)
-  }
+  } 
   
+  # return with legend
+  feat_return  %>% 
+    addLegend(values = 1, group = group_l,
+              position = "bottomright", labels = group_l,
+              colors= color)
 }
 
 
