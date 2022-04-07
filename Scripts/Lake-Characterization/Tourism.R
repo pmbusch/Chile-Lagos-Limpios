@@ -2,7 +2,7 @@
 ## Some analysis on Tourism
 ## PBH Dec. 2021
 
-source("Scripts/00-Common.R", encoding = "UTF-8")
+# source("Scripts/00-Common.R", encoding = "UTF-8")
 
 # PIB (GDP) Data ------------
 
@@ -56,7 +56,7 @@ gdp <- gdp %>%
 
 
 ## Plot for most recent year
-gdp %>% 
+fig_gdp_all <- gdp %>% 
   filter(year==2019) %>% 
   ggplot(aes(region,gdp_perc,fill=Actividad))+
   geom_col(position=position_fill(reverse = TRUE))+
@@ -72,7 +72,7 @@ gdp %>%
        caption = "Banco central 2019. Share for Comercio, Restaurantes y Hoteles is shown")
 
 # Same plot but for regions of interest
-gdp %>% 
+fig_gdp <- gdp %>% 
   filter(year==2019) %>% 
   filter(region %in% c("ARAUC","RIOS","LAGOS","Nacional")) %>% 
   ggplot(aes(region,gdp_perc,fill=Actividad))+
@@ -90,5 +90,4 @@ gdp %>%
        caption = "Banco central 2019. Share for Comercio, Restaurantes y Hoteles is shown")
 
 
-
-
+## EoF

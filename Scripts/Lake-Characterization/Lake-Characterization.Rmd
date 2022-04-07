@@ -1,30 +1,43 @@
 ---
 title: "Lake-Characterization"
 author: "Pablo Busch"
-date: "10/5/2021"
-output: 
+date: "`r format(Sys.time(),'%d-%m-%Y')`"
+output:
+  word_document:
+    reference_doc: CLL_Template.docx
   html_document:
     theme: readable
-    toc: true
+    toc: yes
     toc_depth: 4
-    toc_float: true
-editor_options: 
+    toc_float: yes
+editor_options:
   chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = F, warning = F, message=F)
+knitr::opts_chunk$set(fig.pos = 'H', 
+                      fig.width=12, fig.height=8,
+                      message=F, echo = F, warning=F)
 ```
 
-The main purpose of this document is to explore the dataset compiled by Chile Lagos Limpios, and get to know the information of the 23 North-Patagonian lakes.
+# Purpose
+
+The main purpose of this document is to provide a characterization of the 23 lakes associated with Chile Lagos Limpios. The characterization will be done in the followings dimensiones:
+
+- Physical attributes
+- Demographics
+- Socioeconomic
+
 
 ```{r, echo=F, message=F, warning=F}
-source("Scripts/00-Common.R", encoding = "UTF-8")
+# setwd("Scripts/Lake-Characterization") # only for debbuging without kniting
+source("../00-Common.R", encoding = "UTF-8")
 ```
 
 
 ```{r, include=F}
-source("Scripts/Load-Data/01-LoadData-Boundaries-Physical.R", 
+source("01-LoadData-Boundaries-Physical.R", 
        encoding = "UTF-8")
 
 # # Load Indicators
@@ -42,24 +55,22 @@ ind <- physical_ind
 
 ```
 
-# Physical attributes
+# Location and administrative boundaries
 
-Let's start with a spatial identification of the 23 lakes in the south of Chile. The following interactive map identifies the 23 lakes.
+The following map shows the location of the 23 lakes in the south of Chile. \newline
 
-```{r}
-p <- leaflet(physical_ind) %>%
-  addTiles() %>%
-  addCircleMarkers(lng=~Longitude,
-                   lat=~Latitude,
-                   label = ~as.character(Lake))
-mapshot(p, "Figures/map.html", 
-        selfcontained=F)
-```
+![Location of the 23 lakes](../../Figures/map.png)
 
+## Administrative boundaries
 
-Let's start with some initial exploration. Here it presents the geographical classification of the 23 lakes (sorted by latitude). We observe they span across 3 regions, 5 provinces and 14 communes. There are 12 identified cities in only 5 lakes. \newline
+The 23 lakes fall into different Chilean boundaries:
 
-*Note: The city identification was made by using the district census 2017 for urban population.*
+- 3 Regions - Araucania, Los Rios and Los Lagos
+- 5 Provinces
+- 14 communes (or counties)
+- 12 cities (or urban settlements) are on the shore of 5 lakes. *Note: The city identification was made by using the district census 2017 for urban population.*
+
+The following table presents the geographical classification of the 23 lakes (sorted by latitude). \newline
 
 ```{r}
 ind %>% 
@@ -73,22 +84,13 @@ ind %>%
   merge_v(1:4) %>% border(border.bottom = fp_border())
 ```
 
+# Physical Attributes
+
+## 3.1	Lake Size - Area and Volume
+
 Let's look at the area and volume of each lake (10 volume values for lakes are missing):
 
 ```{r}
-ind %>%
-  # mutate(Volume_km3=if_else(is.na(Volume_km3),0,Volume_km3)) %>% 
-  ggplot(aes(Area_km2,Volume_km3))+
-  geom_point(aes(col=Region),size=3)+
-  geom_text_repel(aes(label=Lake))+
-  theme(legend.position="bottom")+
-  xlab("Area [km2]")+ylab("Volumen [km3]")+
-  geom_point(data=tahoe,col="black",size=3)+
-  geom_text_repel(data=tahoe, aes(label=Name))
-  # scale_y_log10()+scale_x_log10()
-f_savePlot(last_plot(),"Figures/physical.png")
-
-
 library(ggforce)
 # Ideas: https://stackoverflow.com/questions/45221783/ggforce-facet-zoom-labels-only-on-zoomed-example
 
@@ -110,18 +112,20 @@ ind %>%
   theme(legend.position="bottom")+
   xlab("Area [km2]")+ylab("Volumen [km3]")+
   labs(caption ="2 Lakes in Chile have a comparable size to Lake Tahoe. \n
-       We don't have size data for 10 chilean lakes")+
+       Volume data for 10 lakes is missing.")+
   geom_point(data=tahoe,col="black",size=3)+
   geom_text_repel(data=tahoe, aes(label=Name))+
   facet_zoom(zoom.data=zoom, 
              xlim = c(0, 250), ylim=c(0,30),
              zoom.size = 1.5)
-rm(zoom_data, orig_data)
+rm(zoom_data)
 ```
 
 We observe:
 
 - Lago Ranco and Llanquihue are clear outliers in terms of size. Their total size is comparable to Lake Tahoe from California. \newline
+
+## 3.2	Meteorological Conditions
 
 We have also the data on how many meteorological stations exist in each lake:
 
@@ -134,41 +138,38 @@ ind %>%
   coord_flip(expand = F)+
   labs(x="", y="# of Meteorological Stations", 
        caption="Note: Lakes without a meteorological station are ommited")
-f_savePlot(last_plot(),"Figures/stations.png")
 ```
 
-## Social Indicators
 
-We can see the population in cities that are directly on the shore of some lakes. We note the following interesting points:
+**TO DO**:
 
-- Only 5 lakes have a surrounding urban city in its shore.
-- The total population in the shore of lakes is approx. 130 thousands.
-- Lago Llanquihue and Villarica got the more cities and population in its shore.
-- The analysis **does not** consider tourism nor rural population in the proximity of lakes.
+- Air temperature - average, max and min daily, days below freezing
+- Annual and monthly precipitation
+  - See: [TAHOE: STATE OF THE LAKE REPORT 202](https://www.notion.so/TAHOE-STATE-OF-THE-LAKE-REPORT-2020-a856f14c5d4a4b1fb96b03e7741f17c9)
+- Air pollution
+- Biota (?)
+  - Species living in the zone
+
+
+# Demography
+
+## Population Characterization - Census 2017
+
+More than half million people live in the 14 commune. Total population in the 14 communes is 558,798.
 
 ```{r}
-ind %>% 
-  left_join(cities_lakes) %>% 
-  filter(Pop_District_Census_2017>0) %>%
-  mutate(pop=Pop_District_Census_2017/1000) %>% 
-  ggplot(aes(x=reorder(City,Latitude),
-             y=pop))+
-  # geom_bar(position = position_dodge2(reverse=T),stat="identity")+
-  geom_col(aes(fill=reorder(Lake,Latitude)))+
-  scale_fill_viridis_d( guide = guide_legend(reverse = TRUE))+
-  labs(x="",y="Urban Population 2017 [in thousands]",fill="",
-       caption = "Source: District Census 2017")+
-  geom_label(aes(label=round(pop,1)),nudge_y = 1)+
-  coord_flip()+
-  scale_y_continuous(expand = c(0, 0),limits=c(0,35))+
-   theme(legend.position="left")
-f_savePlot(last_plot(),"Figures/cities_pop.png")
+source("Population.R",encoding = "UTF-8")
+fig_pop
 ```
 
-We can also look at the proportion of urban/rural population per commune:
+### Urban Population
+
+In general, bigger communes have a greater share of urban population. \newline
+
+The pattern in the communes of interest does not align with the national averages (88% urban and 12% rural).
 
 ```{r}
-source("Scripts/Load-Data/LoadData-Population.R", 
+source("LoadData-Population.R", 
        encoding = "UTF-8")
 
 # pop by commune and area
@@ -184,28 +185,28 @@ pop_commune <- pop_district %>%
 
 ```{r, include=F}
 # proportion urban-rural
-pop_district %>% 
-  group_by(AREA) %>% 
-  summarize(pop=sum(PERSONAS,na.rm=T)) %>% 
-  mutate(perc=pop/sum(pop))
-
-codes_region <- codigos_territoriales %>% 
-  group_by(codigo_region,nombre_region) %>% tally()
-
-pop_district %>% 
-  group_by(REGION,AREA) %>% 
-  summarize(pop=sum(PERSONAS,na.rm=T)) %>% 
-  mutate(perc=pop/sum(pop),
-         region=paste0(if_else(REGION>9,"","0"),REGION)) %>% 
-  left_join(codes_region,by=c("region"="codigo_region"))
+# pop_district %>% 
+#   group_by(AREA) %>% 
+#   summarize(pop=sum(PERSONAS,na.rm=T)) %>% 
+#   mutate(perc=pop/sum(pop))
+# 
+# codes_region <- codigos_territoriales %>% 
+#   group_by(codigo_region,nombre_region) %>% tally()
+# 
+# pop_district %>% 
+#   group_by(REGION,AREA) %>% 
+#   summarize(pop=sum(PERSONAS,na.rm=T)) %>% 
+#   mutate(perc=pop/sum(pop),
+#          region=paste0(if_else(REGION>9,"","0"),REGION)) %>% 
+#   left_join(codes_region,by=c("region"="codigo_region"))
 
 
 # proportion urban-rural - excluding rm
-pop_district %>% 
-  filter(REGION!=13) %>% 
-  group_by(AREA) %>% 
-  summarize(pop=sum(PERSONAS,na.rm=T)) %>% 
-  mutate(perc=pop/sum(pop))
+# pop_district %>% 
+#   filter(REGION!=13) %>% 
+#   group_by(AREA) %>% 
+#   summarize(pop=sum(PERSONAS,na.rm=T)) %>% 
+#   mutate(perc=pop/sum(pop))
 ```
 
 
@@ -231,41 +232,14 @@ total_pop %>%
   scale_y_continuous(labels = scales::percent)+
    guides(fill = guide_legend(reverse=TRUE))+
   theme(legend.position="top")
-f_savePlot(last_plot(),"Figures/pop_urban.png")
+# f_savePlot(last_plot(),"Figures/pop_urban.png")
 ```
 
-We can see that:
+### Population self-identified as belonging to an originary ethnic:
 
-- In general, bigger communes have a greater share of urban population.
-- The pattern in the communes of interest does not align with the national averages (88% urban and 12% rural). \newline
+Around 11.9% of the national population identified themselves as belonging to an originary ethnic. \newline
 
-Let's look at the population trend and projected for 2035:
-
-```{r}
-pop_commune_cll %>% 
-  mutate(pop=pop/1000,
-         year=as.numeric(year),
-         Nombre_Comuna=Nombre_Comuna %>%
-           str_replace("Puc.n","Pucon") %>%
-           str_replace("R.o","Rio")) %>% 
-  left_join(map_commune) %>%
-  ggplot(aes(year,pop,fill=reorder(Nombre_Comuna,desc(latitude_commune ))))+
-  geom_area(alpha=.5,size=1, colour="black")+
-  scale_fill_viridis_d()+
-  labs(x="",fill="",y="Population [in thousands]",
-       caption="Source: Census 2017 and INE")+
-  geom_vline(xintercept = 2021, linetype="dashed")+
-  annotate("text", x=2022,y=50, label="2021",angle = 90)+
-  coord_cartesian(expand = F)
-f_savePlot(last_plot(),"Figures/proy_pop.png")
-```
-
-Population projects at this level of detail are not that much useful, as it misses potential changes in status quo such as:
-
-- Migration from Santiago to the south of Chile
-- International inmigration
-
-Let's look at the percentage of people self-identified as belonging to an originary ethnic:
+The communes of interest shows a much higher proportion of 24.7%, with some communes with over 40% of their population belonging to an ethnic.
 
 ```{r}
 # Calculate percentage
@@ -299,23 +273,128 @@ pop_commune %>%
   scale_y_continuous(labels = scales::percent)+
    guides(fill = guide_legend(reverse=TRUE))+
   theme(legend.position="top")
-f_savePlot(last_plot(),"Figures/pop_Ethnic.png")
+# f_savePlot(last_plot(),"Figures/pop_Ethnic.png")
 
 
 # national proportion
-pop_district %>% 
-  summarize(pop=sum(PERSONAS,na.rm=T),
-            etnic=sum(PUEBLO,na.rm=t)) %>% 
-  mutate(perc=etnic/pop)
-# communes of interest
-pop_district %>% 
-  filter(COMUNA %in% comunes_cll_codes) %>% 
-  summarize(pop=sum(PERSONAS,na.rm=T),
-            etnic=sum(PUEBLO,na.rm=t)) %>% 
-  mutate(perc=etnic/pop)
+# pop_district %>% 
+#   summarize(pop=sum(PERSONAS,na.rm=T),
+#             etnic=sum(PUEBLO,na.rm=t)) %>% 
+#   mutate(perc=etnic/pop)
+# # communes of interest
+# pop_district %>% 
+#   filter(COMUNA %in% comunes_cll_codes) %>% 
+#   summarize(pop=sum(PERSONAS,na.rm=T),
+#             etnic=sum(PUEBLO,na.rm=t)) %>% 
+#   mutate(perc=etnic/pop)
 ```
 
-Around 11.9% of the national population identified themselves as belonging to an originary ethnic. The communes of interest shows a much higher proportion of 24.7%, with some communes with over 40% of their population belonging to an ethnic.
+
+### Population at shores
+
+We can see the population in cities that are directly on the shore of some lakes. We note the following interesting points:
+
+- Only 5 lakes have a surrounding urban city in its shore.
+- The total population in the shore of lakes is approx. 130 thousands.
+- Lago Llanquihue and Villarica got the more cities and population in its shore.
+- The analysis **does not** consider tourism nor rural population in the proximity of lakes.
+
+```{r}
+ind %>% 
+  left_join(cities_lakes) %>% 
+  filter(Pop_District_Census_2017>0) %>%
+  mutate(pop=Pop_District_Census_2017/1000) %>% 
+  ggplot(aes(x=reorder(City,Latitude),
+             y=pop))+
+  # geom_bar(position = position_dodge2(reverse=T),stat="identity")+
+  geom_col(aes(fill=reorder(Lake,Latitude)))+
+  scale_fill_viridis_d( guide = guide_legend(reverse = TRUE))+
+  labs(x="",y="Urban Population 2017 [in thousands]",fill="",
+       caption = "Source: District Census 2017")+
+  geom_label(aes(label=round(pop,1)),nudge_y = 1)+
+  coord_flip()+
+  scale_y_continuous(expand = c(0, 0),limits=c(0,35))+
+   theme(legend.position="left")
+# f_savePlot(last_plot(),"Figures/cities_pop.png")
+```
+
+
+## Population Trends
+
+Let's look at the population trend and projected for 2035, according to INE:
+
+```{r}
+pop_commune_cll %>% 
+  mutate(pop=pop/1000,
+         year=as.numeric(year),
+         Nombre_Comuna=Nombre_Comuna %>%
+           str_replace("Puc.n","Pucon") %>%
+           str_replace("R.o","Rio")) %>% 
+  left_join(map_commune) %>%
+  ggplot(aes(year,pop,fill=reorder(Nombre_Comuna,desc(latitude_commune ))))+
+  geom_area(alpha=.5,size=1, colour="black")+
+  scale_fill_viridis_d()+
+  labs(x="",fill="",y="Population [in thousands]",
+       caption="Source: Census 2017 and INE")+
+  geom_vline(xintercept = 2021, linetype="dashed")+
+  annotate("text", x=2022,y=50, label="2021",angle = 90)+
+  coord_cartesian(expand = F)
+# f_savePlot(last_plot(),"Figures/proy_pop.png")
+```
+
+Population projects at this level of detail are not that much useful, as it misses potential changes in status quo such as:
+
+- Migration from Santiago to the south of Chile
+- International inmigration
+- Urban growth in the zone
+
+# Socioeconomic Analysis
+
+## Casen Analysis - Socioeconomic characterization survey
+
+### Income
+
+Mean Income: Almost all communes show **mean income below national average**.
+
+```{r}
+source("casen_load.R",
+       encoding = "UTF-8")
+fig_income
+```
+
+Median Income:
+
+```{r}
+fig_income_med
+```
+
+### Education
+
+The percetange of of people with less than high school education is higher than the national average for most of the communes in the zone.
+
+```{r}
+fig_education
+```
+
+### Health
+
+Next is presented the percentageof population affiliated to each health provider. Note that:
+
+- Isapre - Private provider
+- FF.AA - Army health system
+- Fonasa - Public Health system according to income level - A low to D high
+
+```{r}
+fig_health
+```
+
+
+## Tourism
+
+
+```{r}
+source("Tourism.R",encoding = "UTF-8")
+```
 
 
 **TO DO:**
@@ -323,69 +402,22 @@ Around 11.9% of the national population identified themselves as belonging to an
 - Number of visitors per year
 - Other number of things, like: # of restaurants,# hotels, # of tourism attractions, ...
 
-## Economic Indicators
 
-Let's look at some economic indicators, that are grouped by region. Let's remember the region of each lake
+Key Questions:
 
-```{r}
-# ind %>% 
-#   group_by(Region) %>% 
-#   summarise(Lakes = paste0(Name, collapse = ",")) %>% 
-#   flextable() %>% autofit(add_w = 0.1, add_h = 0.3)
-```
+- % tourism in total economic activity 
+- PIB? Empleo por comuna?
 
-Some economic indicators per region:
+## GDP Share per region
 
-```{r}
-# ind %>% 
-#   group_by(Region) %>% 
-#   summarise(`Multidimensional Poverty Index`=
-#               mean(`Multidimensional_Poverty_Index_-_4_dimensions_(Region)`),
-#             `% People in Extreme Poverty`=
-#               mean(`%_People_in_Extreme_Poverty_(Region)`),
-#             `GDP per Capita`=
-#               mean(`GDP_per_capita_2018_(Region)_in_thousand_of_Pesos`),
-#             `Economic Growth`=mean(Economic_Growth_2018)*100,
-#             `% Unemployment`=mean(`%_Unemployment`)*100) %>% 
-#   flextable() %>% autofit(add_w = 0.1, add_h = 0.3)
-```
+Main takeaways from the figure:
 
-Some touristic information per region:
+- Service sector - Lower than national level
+- Agricultural - Higher than national level
+- Manufacture Industry - Higher than national level
 
 ```{r}
-# ind %>% 
-#   group_by(Region) %>% 
-#   summarise(`People (Census 2002)`=mean(`Regional_Population_-_2002_Census`),
-#             `# of Tourism Accomodations`=
-#               mean(Number_of_Tourism_Accomodations),
-#             `# of Restaurants`=mean(N_Restaurants),
-#             `Tourist arrivals`=mean(Arrivals_to_to_Tourism_Accomodation_Establishments)) %>% 
-#   flextable() %>% autofit(add_w = 0.1, add_h = 0.3)
+fig_gdp
 ```
-
-## Scores
-
-Based on the scores on the spreadsheet:
-
-
-```{r, message=F}
-# scores <- read_excel(url_file,"Scoring System",
-#                            range = "B3:AF26")
-# 
-# scores %>% 
-#   select(Name,TOTAL,
-#          `Environmental Total`,`Social Total`,`Economic Total`) %>% 
-#   pivot_longer(c(-Name,-TOTAL),
-#                names_to = "indicator",values_to = "score") %>% 
-#   mutate(indicator=str_remove_all(indicator," Total") %>% 
-#            factor(levels=c("Environmental","Social","Economic"))) %>% 
-#   ggplot(aes(reorder(Name,TOTAL),score,fill=indicator)) +
-#   geom_bar(position = position_stack(reverse = TRUE),stat="identity")+
-#   coord_flip(expand=F)+
-#   labs(x="",y="Score",fill="Dimension")+
-#   theme(legend.position="bottom")
-
-```
-
 
 

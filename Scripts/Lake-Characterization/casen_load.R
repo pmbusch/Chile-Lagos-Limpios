@@ -8,7 +8,7 @@ library(spatstat) #weighted median
 # Download data
 # casen::descargar_casen_github(anios=2017, carpeta = "Data/Data_Original/Casen")
 df_casen <- read_rds(sprintf(url_file,"CASEN/2017.rds"))
-df_casen %>% names()
+# df_casen %>% names()
 
 ## Unify codigo_comuna: add 0 to regions (01)
 df_casen <- df_casen %>% 
@@ -16,8 +16,8 @@ df_casen <- df_casen %>%
                       comuna,sep=""))
 
 # Expansion Factor: commune and region
-df_casen$expc %>% sum()
-df_casen$expr %>% sum()
+# df_casen$expc %>% sum()
+# df_casen$expr %>% sum()
 
 
 get_var_CASEN <- function(var_interest){
@@ -44,16 +44,16 @@ get_var_CASEN <- function(var_interest){
 }
 
 
-df_casen %>% 
-  summarise(var_mean=weighted.mean(ytotcor,w = expc,na.rm=T),
-            var_median=weighted.median(ytotcor, w = expc,na.rm=T))
+# df_casen %>%
+#   summarise(var_mean=weighted.mean(ytotcor,w = expc,na.rm=T),
+#             var_median=weighted.median(ytotcor, w = expc,na.rm=T))
 
 
 
-df_casen %>% 
-  group_by(region) %>% 
-  summarise(var_mean=weighted.mean(ytotcor,w = expc,na.rm=T),
-            var_median=weighted.median(ytotcor, w = expc,na.rm=T))
+# df_casen %>% 
+#   group_by(region) %>% 
+#   summarise(var_mean=weighted.mean(ytotcor,w = expc,na.rm=T),
+#             var_median=weighted.median(ytotcor, w = expc,na.rm=T))
 
 # Function
 
@@ -67,7 +67,7 @@ df_income <- get_var_CASEN(ytotcor) %>%
 # usd to clp
 usd_clp <- 800
 
-df_income %>% 
+fig_income_med <- df_income %>% 
   left_join(map_commune) %>% 
   mutate(latitude_commune=if_else(is.na(latitude_commune),
                                   -30,latitude_commune)) %>%   # to sort
@@ -79,9 +79,9 @@ df_income %>%
   labs(x="",y="Median annual income (USD)",fill="Region",
        caption="Source: CASEN Socioeconomic Survey 2017. \n A value of 800 clp per USD was used.")
 
-f_savePlot(last_plot(),"Figures/median_income.png")
+# f_savePlot(fig_income,"Figures/median_income.png")
 
-df_income %>% 
+fig_income <- df_income %>% 
   left_join(map_commune) %>% 
   mutate(latitude_commune=if_else(is.na(latitude_commune),
                                   -30,latitude_commune)) %>%   # to sort
@@ -92,7 +92,7 @@ df_income %>%
   coord_flip()+
   labs(x="",y="Mean annual income (USD)",fill="Region",
        caption="Source: CASEN Socioeconomic Survey 2017. \n A value of 800 clp per USD was used.")
-f_savePlot(last_plot(),"Figures/mean_income.png")
+# f_savePlot(fig_income,"Figures/mean_income.png")
 
 
 
@@ -111,7 +111,7 @@ df_education <- df_casen %>%
   left_join(codigos_territoriales, by = c("comuna"="codigo_comuna")) %>% 
   rename(codigo_comuna=comuna)
 
-df_education$e6a %>% unique()
+# df_education$e6a %>% unique()
 df_education <- df_education %>% 
   filter(e6a!=99) %>% # filtro respuesta no sabe (unknown)
   mutate(menor_media=if_else(e6a<8,1,0)) %>% 
@@ -148,7 +148,7 @@ df_education_nat <- df_education_nat %>%
 df_education <- rbind(df_education_nat,df_education)
 
 # plot
-df_education %>% 
+fig_education <- df_education %>% 
   left_join(map_commune) %>% 
   mutate(latitude_commune=if_else(is.na(latitude_commune),
                                   -30,latitude_commune)) %>%   # to sort
@@ -159,7 +159,7 @@ df_education %>%
     labs(x="",y="% of population with less than high school education",fill="Region",
        caption="Source: CASEN Socioeconomic Survey 2017.")
 
-f_savePlot(last_plot(),"Figures/high_school.png")
+# f_savePlot(fig_education,"Figures/high_school.png")
 
 
 ## HEALTH CARE PROVIDER -------
@@ -228,7 +228,7 @@ df_healthProvider_plot <- df_healthProvider %>%
   gather("key","value",-nombre_region,-codigo_comuna,-nombre_comuna)
 
 # plot
-df_healthProvider_plot %>% 
+fig_health <- df_healthProvider_plot %>% 
   left_join(map_commune) %>% 
   mutate(latitude_commune=if_else(is.na(latitude_commune),
                                   -30,latitude_commune)) %>%   # to sort
@@ -241,6 +241,6 @@ df_healthProvider_plot %>%
   guides(fill = guide_legend(reverse=TRUE))+
   theme(legend.position="bottom")
 
-f_savePlot(last_plot(),"Figures/healthprovider.png")
+# f_savePlot(fig_health,"Figures/healthprovider.png")
 
 ## EoF

@@ -3,7 +3,7 @@
 ## PBH Oct. 2021
 
 # Common functions and parameters
-source("Scripts/00-Common.R", encoding = "UTF-8")
+# source("Scripts/00-Common.R", encoding = "UTF-8")
 
 file_save <- "Figures/Population/%s.png"
 
@@ -45,7 +45,7 @@ pop_commune_cll$pop %>% sum()
 
 
 # FIGURES -------------
-pop_commune_cll %>% 
+fig_pop <- pop_commune_cll %>% 
   mutate(pop=pop/1000) %>% 
   ggplot(aes(reorder(NOM_COMUNA,pop),pop))+
   geom_col(fill="brown")+
@@ -54,7 +54,6 @@ pop_commune_cll %>%
   coord_flip()+
   scale_y_continuous(expand = c(0, 0),limits=c(0,260))
 
-f_savePlot(last_plot(),
-           sprintf(file_save,"Pop2017"))
+# f_savePlot(fig_pop,sprintf(file_save,"Pop2017"))
 
 
