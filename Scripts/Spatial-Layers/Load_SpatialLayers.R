@@ -321,6 +321,7 @@ rm(sendero_chile)
 circuitos_turisticos <- st_read(sprintf(url_file_shp,folder,
                              "Circuitos_Turísticos",
                              "Circuitos_Turisticos_2015"))
+
 circuitos_turisticos <- st_transform(circuitos_turisticos,"EPSG:4326") %>% 
   st_make_valid()
 
@@ -411,14 +412,13 @@ rm(uso_suelo)
 # MOP ----
 folder <- "MOP"
 
-
 ## Puentes ----------
+## Read as gdb to get attributes directly
+## Get attributes in KML: https://stackoverflow.com/questions/50775357/how-to-read-in-kml-file-properly-in-r-or-separate-out-lumped-variables-into-col
+puentes <- st_read(sprintf(url_file_shp,folder,"Puentes","Puentes") %>% 
+                     str_replace("shp","gdb"),
+                   layer = "Puentes")
 
-## TO DO: Get attributes: https://stackoverflow.com/questions/50775357/how-to-read-in-kml-file-properly-in-r-or-separate-out-lumped-variables-into-col
-puentes <- st_read(sprintf(url_file_shp,folder,
-                           "Puentes.kml",
-                           "Puentes") %>% 
-                     str_replace("shp","kml"))
 puentes <- st_transform(puentes,"EPSG:4326") %>% 
   st_make_valid()
 
@@ -428,6 +428,24 @@ puentes <- st_filter(puentes,map_commune2)
 # Save layer for use in other scripts
 saveRDS(puentes,sprintf(file_rds,"puentes"))
 rm(puentes)
+
+## Red Vial Chile (Caminos) ----------
+red_vial <- st_read(sprintf(url_file_shp,folder,"Red_Vial_Chile","Red_Vial_Chile_10_11_2021") %>% 
+                     str_replace("shp","gdb"),
+                   layer = "Red_Vial_Chile")
+
+# need to add st_zm to remove Z and M (additional dimensions)
+# source: https://gis.stackexchange.com/questions/346855/remove-z-value-from-xyz-point-in-sf
+red_vial <- st_transform(st_zm(red_vial),"EPSG:4326") %>% 
+  st_make_valid()
+
+# Spatial filter using 14 communes - to obtain the 23 lakes
+red_vial <- st_filter(red_vial,map_commune2)
+
+# Save layer for use in other scripts
+saveRDS(red_vial,sprintf(file_rds,"red_vial"))
+rm(red_vial)
+
 
 # CONADI -----
 

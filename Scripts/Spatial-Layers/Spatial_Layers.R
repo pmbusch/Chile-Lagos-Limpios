@@ -42,6 +42,8 @@ comunidad_indigena <- readRDS(sprintf(url_load_shp,"comunidad_indigena"))
 humedales <- readRDS(sprintf(url_load_shp,"humedales"))
 uf <- readRDS(sprintf(url_load_shp,"uf"))
 emisiones_uf <- readRDS(sprintf(url_load_shp,"emisiones_uf"))
+puentes <- readRDS(sprintf(url_load_shp,"puentes"))
+red_vial <- readRDS(sprintf(url_load_shp,"red_vial"))
 
 
 ## FEATURE DATA -------
@@ -143,7 +145,18 @@ m <- leaflet() %>%
                        "PuntoDeDescarga","ComunaNombre","CodigoRETC",
                        "Parametro"),
           source="SMA - SNIFA",
-          polygon_form = "p",color="brown")
+          polygon_form = "p",color="brown") %>% 
+  add.Layer(puentes,"Puentes",
+            features = c("NOMBRE_PUENTE","ROL",
+                         "LARGO","ANCHO_TOTAL","MAT_ESTRIB","PISO",
+                         "MAT_VIGAS"),
+            source="MOP, 2017",
+            polygon_form = "p",color="black") %>% 
+  add.Layer(red_vial,"Red Vial",
+            features = c("NOMBRE_CAMINO","CLASIFICACION","CARPETA","KM_F",
+                         "ENROLADO","CONCESIONADO","ROL","CALZADA","ORIENTACION"),
+            source="MOP, 2017",
+            polygon_form = "l",color="grey")
 
   
 # Could automatize this part, don't know how yet
@@ -162,7 +175,9 @@ groupsId <- c("North-Patagonian Lakes",
               "Estaciones Fluviometricas",
               "Estaciones Sedimentometricas",
               "SMA - Proyectos con RCA aprobada (UF)",
-              "SMA - Proyectos con RILES declarados")
+              "SMA - Proyectos con RILES declarados",
+              "Puentes",
+              "Red Vial")
 
 # create selectable layers
 m <- m %>% 
