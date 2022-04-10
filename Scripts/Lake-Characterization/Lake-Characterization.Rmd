@@ -348,6 +348,84 @@ Population projects at this level of detail are not that much useful, as it miss
 - International inmigration
 - Urban growth in the zone
 
+# Industry
+
+## SMA Data
+
+
+Totally of projects with a 
+
+The data is reported at UF (Unidad Fiscalizable) level, which consist on the basic unit of the SMA (Superintendencia del Medio Ambiente) to identify common approved projects associated with the same company.
+
+```{r}
+uf <- readRDS("Data/Spatial Data/UF.rds")
+
+# Table: # of projects per communee ---------
+
+# number of projects per commune
+n_fuentes <- uf %>% 
+  group_by(RegionNombre,ComunaNombre,CategoriaEconomicaNombre) %>% 
+  tally()
+
+n_fuentes$geometry <- NULL
+
+# of projects per commune
+n_projects <- n_fuentes %>% ungroup() %>% 
+  pivot_wider(names_from = CategoriaEconomicaNombre, values_from = n) %>% 
+  replace(is.na(.), 0) %>%
+  mutate(sum = rowSums(across(where(is.numeric)))) %>% # sum of columns: Total
+  janitor::adorn_totals("row") %>% 
+  rename(Region=RegionNombre,Comuna=ComunaNombre,Total=sum)
+
+
+# table
+n_projects %>%
+  select(Region,Comuna,Total,`Pesca y Acuicultura`,
+         `Infraestructura Portuaria`,Forestal,Agroindustrias,
+         `Saneamiento Ambiental`) %>% 
+  flextable() %>% 
+  autofit() %>% 
+  merge_v(j=1) %>%
+  hline(i=c(2,8,13), part="body") %>% 
+  vline(j=3) %>% 
+  bold(i=14) %>% bold(part="header")
+
+rm(n_fuentes,n_projects)
+```
+
+Water emissions:
+
+```{r}
+emisiones_uf <- read_rds("Data/SMA/emisiones_RILES.rds") 
+
+# number of projects per commune
+n_fuentes <- emisiones %>% 
+  group_by(RegionNombre,ComunaNombre,NombreCategoria,RazonSocial,Planta) %>% 
+  tally()
+
+n_fuentes$geometry <- NULL
+
+# of projects per commune
+n_projects <- n_fuentes %>% ungroup() %>% 
+  group_by(RegionNombre,ComunaNombre,NombreCategoria) %>% 
+  tally() %>% 
+  pivot_wider(names_from = NombreCategoria, values_from = n) %>% 
+  # mutate(sum = rowSums(across(where(is.numeric)))) %>% # sum of columns: Total
+  janitor::adorn_totals("row") %>% 
+  rename(Region=RegionNombre,Comuna=ComunaNombre)
+
+n_projects %>% 
+  flextable() %>% 
+  autofit() %>% 
+  merge_v(j=1) %>% 
+  hline(i=c(2,7,11), part="body") %>% 
+  bold(i=12) %>% bold(part="header")
+
+rm(n_fuentes,n_projects)
+```
+
+
+
 # Socioeconomic Analysis
 
 ## Casen Analysis - Socioeconomic characterization survey
