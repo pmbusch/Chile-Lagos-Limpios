@@ -11,42 +11,13 @@ url_load_shp <- "Data/Spatial Data/%s.rds"
 
 ## Communes  and labels ------
 
-map_commune2 <- st_transform(map_commune,"EPSG:4326") %>% 
-  st_make_valid()
-lab_commune <- map_commune2 %>% 
-  left_join(codigos_territoriales) %>% 
-  pull(nombre_comuna)
-lab_commune <- paste0("<strong>",lab_commune,"</strong>") %>% 
-  lapply(HTML)
-
-
+map_commune2 <- readRDS(sprintf(url_load_shp,"commune_pop"))
 map_provincia <- readRDS(sprintf(url_load_shp,"map_provincia"))
 map_region <- readRDS(sprintf(url_load_shp,"map_region"))
-codigos_territoriales_region <- codigos_territoriales %>% 
-  group_by(codigo_region,nombre_region) %>% tally
-lab_region <- map_region %>% 
-  left_join(codigos_territoriales_region) %>% 
-  pull(nombre_region)
-lab_region <- paste0("<strong>",lab_region,"</strong>") %>% 
-  lapply(HTML)
-rm(codigos_territoriales_region)
-
-codigos_territoriales_provincia <- codigos_territoriales %>% 
-  group_by(codigo_provincia,nombre_provincia) %>% tally
-lab_provincia <- map_provincia %>% 
-  left_join(codigos_territoriales_provincia) %>% 
-  pull(nombre_provincia)
-lab_provincia <- paste0("<strong>",lab_provincia,"</strong>") %>% 
-  lapply(HTML)
-rm(codigos_territoriales_provincia)
-
-m_commune <- f.interactive.map(map_commune2,lab_commune) 
-# rm(lab_commune)
-m_commune
+map_census <- readRDS(sprintf(url_load_shp,"map_census"))
 
 
 ## LOAD LAYERS -------------
-
 lagos_zone <- readRDS(sprintf(url_load_shp,"lagos_zone")) # MASAS LACUSTRES
 areas_pobladas <- readRDS(sprintf(url_load_shp,"areas_pobladas"))
 glaciares <- readRDS(sprintf(url_load_shp,"glaciares"))
@@ -69,6 +40,8 @@ sendero_chile <- readRDS(sprintf(url_load_shp,"sendero_chile"))
 sitios_prioritarios <- readRDS(sprintf(url_load_shp,"sitios_prioritarios"))
 comunidad_indigena <- readRDS(sprintf(url_load_shp,"comunidad_indigena"))
 humedales <- readRDS(sprintf(url_load_shp,"humedales"))
+uf <- readRDS(sprintf(url_load_shp,"uf"))
+emisiones_uf <- readRDS(sprintf(url_load_shp,"emisiones_uf"))
 
 
 ## FEATURE DATA -------
@@ -83,18 +56,26 @@ m <- leaflet() %>%
             features=c("Tipo"),
             group_l = "North-Patagonian Lakes",
             color="blue") %>% 
-  addPolygons(data=map_commune2,label = lab_commune,
-              group = "Commune",color = "grey") %>% 
-  addLegend(values = 1, group = "Commune",position = "bottomright", 
-            labels = "Commune",colors= "grey") %>% 
-  addPolygons(data=map_provincia,label = lab_provincia,
-              group = "Province",color = "grey") %>% 
-  addLegend(values = 1, group = "Province",position = "bottomright", 
-            labels = "Province",colors= "grey") %>%
-  addPolygons(data=map_region,label = lab_region,
-              group = "Region",color = "grey") %>% 
-  addLegend(values = 1, group = "Region",position = "bottomright", 
-            labels = "Region",colors= "grey") %>%
+  add.Layer(map_region,map_region$nombre_region,
+            features=c("Poblacion_2017"),
+            group_l = "Region",
+            source="Census, 2017",
+            color="grey") %>% 
+  add.Layer(map_provincia,map_provincia$nombre_provincia,
+            features=c("Poblacion_2017"),
+            group_l = "Province",
+            source="Census, 2017",
+            color="grey") %>% 
+  add.Layer(map_commune2,map_commune2$nombre_comuna,
+            features=c("Poblacion_2017"),
+            group_l = "Commune",
+            source="Census, 2017",
+            color="grey") %>% 
+  add.Layer(map_census,map_census$nombre_comuna,
+            features=c("Poblacion_2017","geocodigo"),
+            group_l = "Poblacion Urbana",
+            source="Census, 2017",
+            color="red") %>% 
   add.Layer(areas_pobladas,"Areas Pobladas",
             features = c("Localidad","Entidad"),
             source="Biblioteca Congreso Nacional",
@@ -150,12 +131,24 @@ m <- leaflet() %>%
   add.Layer(sedimentometricas,"Estaciones Sedimentometricas",
             features = c("NOMBRE","NOM_CUEN","NOM_SUBC"),
             source="IDE-Bienes Nacionales",
-            polygon_form = "p",color="black")
+            polygon_form = "p",color="black") %>% 
+  add.Layer(uf,"SMA - Proyectos con RCA aprobada (UF)",
+          features = c("Nombre","UnidadFiscalizableId","ComunaNombre",
+                       "CategoriaEconomicaNombre","SubCategoriaEconomicaNombre",
+                       "SiglaInstrumento","FechaActualizacion"),
+          source="SMA - SNIFA",
+          polygon_form = "p",color="orange") %>% 
+  add.Layer(emisiones_uf,"SMA - Proyectos con RILES declarados",
+          features = c("NombreCategoria","RazonSocial","Planta",
+                       "PuntoDeDescarga","ComunaNombre","CodigoRETC",
+                       "Parametro"),
+          source="SMA - SNIFA",
+          polygon_form = "p",color="brown")
 
   
 # Could automatize this part, don't know how yet
 groupsId <- c("North-Patagonian Lakes",
-              "Commune","Province","Region",
+              "Region","Province","Commune","Poblacion Urbana",
               "Areas Pobladas",
               "Humedales",
               "Comunidades Indigenas",
@@ -167,7 +160,9 @@ groupsId <- c("North-Patagonian Lakes",
               "Embalses",
               "Estaciones Meteorologicas",
               "Estaciones Fluviometricas",
-              "Estaciones Sedimentometricas")
+              "Estaciones Sedimentometricas",
+              "SMA - Proyectos con RCA aprobada (UF)",
+              "SMA - Proyectos con RILES declarados")
 
 # create selectable layers
 m <- m %>% 

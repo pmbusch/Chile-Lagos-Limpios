@@ -155,6 +155,10 @@ emisiones_fuentes <- emisiones %>%
 emisiones_fuentes <- emisiones_fuentes %>% 
   mutate(Parametro=paste(strwrap(Parametro,width=100),
                          collapse ="<br/>"))
+
+# save object
+saveRDS(emisiones_fuentes,"Data/Spatial Data/emisiones_uf.rds")
+
 # interactive map
 m_fuentes <- mapview(emisiones_fuentes, zcol=c("NombreCategoria"))
 m_fuentes

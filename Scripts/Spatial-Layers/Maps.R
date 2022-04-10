@@ -4,12 +4,16 @@
 
 source("Scripts/00-Common.R", encoding = "UTF-8")
 
+## Population by different aggregations ------
+
 # Poulation by commune
 pop <- censo_2017_comunas %>% 
   left_join(codigos_territoriales) %>% 
   filter(nombre_comuna %in% comunes_cll) %>% 
   group_by(codigo_comuna) %>% 
-  summarise(population2017=sum(poblacion,na.rm=T)) %>% ungroup()
+  summarise(population2017=sum(poblacion,na.rm=T),
+            Poblacion_2017=population2017 %>% 
+              formatC(format="f", big.mark = " ", digits=0)) %>% ungroup()
 
 sum(pop$population2017)
 
@@ -19,14 +23,45 @@ pop_census <- censo_2017_zonas %>%
   left_join(codigos_territoriales) %>% 
   filter(nombre_comuna %in% comunes_cll) %>% 
   group_by(geocodigo) %>% 
-  summarise(population2017=sum(poblacion,na.rm=T)) %>% ungroup()
+  summarise(population2017=sum(poblacion,na.rm=T),
+            Poblacion_2017=population2017 %>% 
+              formatC(format="f", big.mark = " ", digits=0)) %>% ungroup()
 sum(pop_census$population2017)
+
+# Poulation by province
+provinces_cll <- codigos_territoriales %>% 
+  filter(nombre_comuna %in% comunes_cll) %>% 
+  pull(nombre_provincia) %>% unique()
+
+pop_prov <- censo_2017_comunas %>% 
+  left_join(codigos_territoriales) %>% 
+  filter(nombre_provincia %in% provinces_cll) %>% 
+  group_by(codigo_provincia) %>% 
+  summarise(population2017=sum(poblacion,na.rm=T),
+            Poblacion_2017=population2017 %>% 
+              formatC(format="f", big.mark = " ", digits=0)) %>% ungroup()
+
+# Poulation by region
+region_cll <- codigos_territoriales %>% 
+  filter(nombre_comuna %in% comunes_cll) %>% 
+  pull(nombre_region) %>% unique()
+
+pop_reg <- censo_2017_comunas %>% 
+  left_join(codigos_territoriales) %>% 
+  filter(nombre_region %in% region_cll) %>% 
+  group_by(codigo_region) %>% 
+  summarise(population2017=sum(poblacion,na.rm=T),
+            Poblacion_2017=population2017 %>% 
+              formatC(format="f", big.mark = " ", digits=0)) %>% ungroup()
+
 
 # Maps ------
 map_commune <- mapa_comunas %>% st_as_sf() %>%
   left_join(codigos_territoriales) %>% 
   filter(nombre_comuna %in% comunes_cll) %>% 
   left_join(pop)
+
+saveRDS(map_commune,"Data/Spatial Data/commune_pop.rds")
 
 st_crs(map_commune) <- "EPSG:4326"
 
@@ -72,7 +107,9 @@ mapshot(m, "Figures/Maps/PopCommune.html",
 
 # Map Zones -------
 map_zone <- mapa_zonas %>% st_as_sf() %>%
-  right_join(pop_census)
+  right_join(pop_census) %>% left_join(codigos_territoriales)
+
+saveRDS(map_zone,"Data/Spatial Data/map_census.rds")
 
 st_crs(map_zone) <- "EPSG:4326"
 
@@ -117,7 +154,49 @@ mapshot(m2, "Figures/Maps/PopDistrict.html",
         selfcontained=F)
 
 
+## region and prov ----
+## Region -----
+map_region <- chilemapas::generar_regiones() %>% st_as_sf() %>% 
+  filter(codigo_region %in% c("09","10","14")) %>% 
+  mutate(area_region=st_area(geometry) %>% as.numeric(),
+         perimeter_region=st_length(geometry) %>% as.numeric(),
+         latitude_region=map_dbl(geometry, ~st_centroid(.x)[[2]])) %>% 
+  st_transform("EPSG:4326") %>% 
+  st_make_valid()
 
+cod_territoriales_region <- codigos_territoriales %>% 
+  group_by(codigo_region,nombre_region) %>% tally() %>% 
+  dplyr::select(-n)
+map_region <- map_region %>% 
+  left_join(cod_territoriales_region) %>% 
+  left_join(pop_reg)
+rm(cod_territoriales_region)
+
+saveRDS(map_region,"Data/Spatial Data/map_region.rds")
+rm(map_region)
+
+
+## Provincia -----
+map_provincia <- chilemapas::generar_provincias() %>% st_as_sf() %>% 
+  filter(codigo_region %in% c("09","10","14")) %>% 
+  mutate(area_provincia=st_area(geometry) %>% as.numeric(),
+         perimeter_provincia=st_length(geometry) %>% as.numeric(),
+         latitude_provincia=map_dbl(geometry, ~st_centroid(.x)[[2]])) %>% 
+  st_transform("EPSG:4326") %>% 
+  st_make_valid()
+
+cod_territoriales_provincia <- codigos_territoriales %>% 
+  group_by(codigo_region,nombre_region, 
+           codigo_provincia,nombre_provincia) %>% tally() %>% 
+  dplyr::select(-n)
+map_provincia <- map_provincia %>% 
+  left_join(cod_territoriales_provincia) %>% 
+  left_join(pop_prov)
+rm(cod_territoriales_provincia)
+
+
+saveRDS(map_provincia,"Data/Spatial Data/map_provincia.rds")
+rm(map_provincia)
 
 
 

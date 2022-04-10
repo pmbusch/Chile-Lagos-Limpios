@@ -27,47 +27,6 @@ map_commune2 <- st_transform(map_commune,"EPSG:4326") %>%
   st_make_valid()
 saveRDS(map_commune2,sprintf(file_rds,"map_commune"))
 
-## Region -----
-map_region <- chilemapas::generar_regiones() %>% st_as_sf() %>% 
-  filter(codigo_region %in% c("09","10","14")) %>% 
-  mutate(area_region=st_area(geometry) %>% as.numeric(),
-         perimeter_region=st_length(geometry) %>% as.numeric(),
-         latitude_region=map_dbl(geometry, ~st_centroid(.x)[[2]])) %>% 
-  st_transform("EPSG:4326") %>% 
-  st_make_valid()
-
-cod_territoriales_region <- codigos_territoriales %>% 
-  group_by(codigo_region,nombre_region) %>% tally() %>% 
-  dplyr::select(-n)
-map_region <- map_region %>% 
-  left_join(cod_territoriales_region)
-rm(cod_territoriales_region)
-
-saveRDS(map_region,sprintf(file_rds,"map_region"))
-rm(map_region)
-
-## Provincia -----
-map_provincia <- chilemapas::generar_provincias() %>% st_as_sf() %>% 
-  filter(codigo_region %in% c("09","10","14")) %>% 
-  mutate(area_provincia=st_area(geometry) %>% as.numeric(),
-         perimeter_provincia=st_length(geometry) %>% as.numeric(),
-         latitude_provincia=map_dbl(geometry, ~st_centroid(.x)[[2]])) %>% 
-  st_transform("EPSG:4326") %>% 
-  st_make_valid()
-
-cod_territoriales_provincia <- codigos_territoriales %>% 
-  group_by(codigo_region,nombre_region, 
-           codigo_provincia,nombre_provincia) %>% tally() %>% 
-  dplyr::select(-n)
-map_provincia <- map_provincia %>% 
-  left_join(cod_territoriales_provincia)
-rm(cod_territoriales_provincia)
-
-m <- f.interactive.map(map_provincia,map_provincia$nombre_provincia)
-m; rm(m)
-
-saveRDS(map_provincia,sprintf(file_rds,"map_provincia"))
-rm(map_provincia)
 
 ## Distrito censal -----
 map_distrito <- mapa_zonas %>% st_as_sf() %>% 

@@ -79,7 +79,8 @@ n_projects %>%
 
 rm(n_fuentes,n_projects)
 
-
+# save UF object
+saveRDS(uf,"Data/Spatial Data/uf.rds")
 
 # MAP ----
 
@@ -105,5 +106,8 @@ map_uf <- leaflet(uf) %>%
 # map_uf
 mapshot(map_uf, "Figures/Maps/UF.html", selfcontained=F)
 rm(map_uf,labels_uf)
+
+
+
 
 ## EoF

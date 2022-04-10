@@ -7,6 +7,7 @@
 
 file_save <- "Figures/Population/%s.png"
 
+
 # LOAD DATA ---------
 
 ## 2017 Population by Census District ----
