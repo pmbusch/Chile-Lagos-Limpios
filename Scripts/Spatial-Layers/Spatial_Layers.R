@@ -30,9 +30,11 @@ establecimiento_salud <- readRDS(sprintf(url_load_shp,"establecimiento_salud"))
 fluviometricas <- readRDS(sprintf(url_load_shp,"fluviometricas"))
 humedales <- readRDS(sprintf(url_load_shp,"humedales"))
 industria_forestal <- readRDS(sprintf(url_load_shp,"industria_forestal"))
+incendio_forestal <- readRDS(sprintf(url_load_shp,"incendio_forestal"))
 map_distrito <- readRDS(sprintf(url_load_shp,"map_distrito"))
 meteorologica <- readRDS(sprintf(url_load_shp,"meteorologica"))
 planta_aguas_servidas <- readRDS(sprintf(url_load_shp,"planta_aguas_servidas"))
+planta_aguas_servidas_ptoDescarga <- readRDS(sprintf(url_load_shp,"planta_aguas_servidas_ptoDescarga"))
 puentes <- readRDS(sprintf(url_load_shp,"puentes"))
 sedimentometricas <- readRDS(sprintf(url_load_shp,"sedimentometricas"))
 sello_calidad_turistica <- readRDS(sprintf(url_load_shp,"sello_calidad_turistica"))
@@ -82,10 +84,16 @@ m <- leaflet() %>%
             features = c("Localidad","Entidad"),
             source="Biblioteca Congreso Nacional",
             color="red") %>% 
+  add.Layer(establecimiento_salud,"Establecimientos Salud",
+            features = c("TIPO","AMBITO","DEPEN","CERTIFICA",
+            "NIVEL","PRESTADOR","ESTADO","NIVEL_COM","MODALIDAD"),
+            source="MINSAL, 2021",
+            polygon_form = "p",
+            color="orange") %>%
   add.Layer(humedales,"Humedales",
             features = c("Nombre","Clase","SubClase","AreaProteg",
                          "Nombre_AP","Designacio"),
-            source="IDE-Bienes Nacionales, 2015",
+            source="MMA, 2015",
             color="green") %>%
   add.Layer(comunidad_indigena,"Comunidades Indigenas",
             features = c("COMUNIDAD","REGISTRO","FECHA"),
@@ -94,19 +102,25 @@ m <- leaflet() %>%
             polygon_form = "p") %>%
   add.Layer(glaciares,"Glaciares",
             features = c("NOMBRE","CLASIFICA","VOL_M3","NOMB_CUEN"),
-            source="IDE-Bienes Nacionales, 2002",
+            source="DGA, 2014",
             color="#00008B") %>%
   add.Layer(atractivos_turisticos,"Atractivos Turisticos",
             features = c("NOMBRE","CATEGORIA","TIPO","PROPIEDAD"),
             polygon_form = "p",
-            source="IDE-Bienes Nacionales",
+            source="SERNATUR, 2020",
             color="green") %>% 
   add.Layer(planta_aguas_servidas,"Planta Aguas Servidas",
             features = c("DESCRIPCIO","SISTEMA","TIP_TRATAM",
                          "RECEPTOR","TIPO_RECEP","CARGA_NKT"),
             polygon_form = "p",
-            source="IDE-Bienes Nacionales",
+            source="SISS, 2016",
             color="brown") %>% 
+  add.Layer(planta_aguas_servidas_ptoDescarga,"Punto Descarga Aguas Servidas",
+            features = c("EMPRESA","NOM_OBRA","ESTADO_USO",
+                         "RECEPTOR","TIPO_RECEP"),
+            polygon_form = "p",
+            source="SISS, 2017",
+            color="black") %>% 
   add.Layer(aeropuertos,"Aeropuertos y aerodromos",
             features = c("Aerodromo","categoría"),
             polygon_form = "p",
@@ -115,47 +129,57 @@ m <- leaflet() %>%
   add.Layer(circuitos_turisticos,"Circuitos Turisticos",
             features = c("Circuito","Exten_km"),
             polygon_form = "l",
-            source="IDE-Bienes Nacionales",
+            source="SERNATUR, 2015",
             color="red") %>% 
   add.Layer(embalses,"Embalses",
             features=c("NOMBRE"),
             polygon_form = "p",
-            source="IDE-Bienes Nacionales, 2016",
+            source="DGA, 2016",
             color="blue") %>% 
   add.Layer(meteorologica,"Estaciones Meteorologicas",
             features = c("NOMBRE","NOM_CUEN","NOM_SUBC"),
-            source="IDE-Bienes Nacionales",
+            source="DGA, 2019",
             polygon_form = "p",color="black") %>%
   add.Layer(fluviometricas,"Estaciones Fluviometricas",
             features = c("NOMBRE","NOM_CUEN","NOM_SUBC"),
-            source="IDE-Bienes Nacionales",
+            source="DGA, 2017",
             polygon_form = "p",color="black") %>%
   add.Layer(sedimentometricas,"Estaciones Sedimentometricas",
             features = c("NOMBRE","NOM_CUEN","NOM_SUBC"),
-            source="IDE-Bienes Nacionales",
+            source="DGA, 2017",
+            polygon_form = "p",color="black") %>% 
+  add.Layer(industria_forestal,"Industria Forestal",
+            features = c("Industria","Movilidad","Rsocial",
+                         "Productos","Especies","Residuos"),
+            source="MINAGRI, 2018",
+            polygon_form = "p",color="green") %>% 
+  add.Layer(incendio_forestal,"Incendios Forestales",
+            features = c("temporada","ambito","inicio_c",
+                         "combus_i"),
+            source="CONAF, 2017",
             polygon_form = "p",color="black") %>% 
   add.Layer(uf,"SMA - Proyectos con RCA aprobada (UF)",
           features = c("Nombre","UnidadFiscalizableId","ComunaNombre",
                        "CategoriaEconomicaNombre","SubCategoriaEconomicaNombre",
                        "SiglaInstrumento","FechaActualizacion"),
-          source="SMA - SNIFA",
+          source="SMA - SNIFA, 2021",
           polygon_form = "p",color="orange") %>% 
   add.Layer(emisiones_uf,"SMA - Proyectos con RILES declarados",
           features = c("NombreCategoria","RazonSocial","Planta",
                        "PuntoDeDescarga","ComunaNombre","CodigoRETC",
                        "Parametro"),
-          source="SMA - SNIFA",
+          source="SMA - SNIFA, 2021",
           polygon_form = "p",color="brown") %>% 
   add.Layer(puentes,"Puentes",
             features = c("NOMBRE_PUENTE","ROL",
                          "LARGO","ANCHO_TOTAL","MAT_ESTRIB","PISO",
                          "MAT_VIGAS"),
-            source="MOP, 2017",
+            source="MOP, 2018",
             polygon_form = "p",color="black") %>% 
   add.Layer(red_vial,"Red Vial",
             features = c("NOMBRE_CAMINO","CLASIFICACION","CARPETA","KM_F",
                          "ENROLADO","CONCESIONADO","ROL","CALZADA","ORIENTACION"),
-            source="MOP, 2017",
+            source="MOP, 2021",
             polygon_form = "l",color="grey")
 
   
@@ -163,17 +187,21 @@ m <- leaflet() %>%
 groupsId <- c("North-Patagonian Lakes",
               "Region","Province","Commune","Poblacion Urbana",
               "Areas Pobladas",
+              "Establecimientos Salud",
               "Humedales",
               "Comunidades Indigenas",
               "Glaciares",
               "Atractivos Turisticos",
               "Planta Aguas Servidas",
+              "Punto Descarga Aguas Servidas",
               "Aeropuertos y aerodromos",
               "Circuitos Turisticos",
               "Embalses",
               "Estaciones Meteorologicas",
               "Estaciones Fluviometricas",
               "Estaciones Sedimentometricas",
+              "Industria Forestal",
+              "Incendios Forestales",
               "SMA - Proyectos con RCA aprobada (UF)",
               "SMA - Proyectos con RILES declarados",
               "Puentes",

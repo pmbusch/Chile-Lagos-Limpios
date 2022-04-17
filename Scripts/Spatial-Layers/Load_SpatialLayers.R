@@ -168,6 +168,21 @@ planta_aguas_servidas <- st_filter(planta_aguas_servidas,map_commune2)
 saveRDS(planta_aguas_servidas,sprintf(file_rds,"planta_aguas_servidas"))
 rm(planta_aguas_servidas)
 
+## Ptos Descargas Plantas de Tratamiento de Aguas Servidas -----
+planta_aguas_servidas_ptoDescarga <- st_read(sprintf(url_file_shp,folder,
+                                         "PTAS_PTODESCARGA_Sirgas19s",
+                                         "PTAS_PTODESCARGA_Sirgas19s_VF"))
+planta_aguas_servidas_ptoDescarga <- st_transform(planta_aguas_servidas_ptoDescarga,"EPSG:4326") %>% 
+  st_make_valid()
+
+# Spatial filter using 14 communes - to obtain the 23 lakes
+planta_aguas_servidas_ptoDescarga <- st_filter(planta_aguas_servidas_ptoDescarga,map_commune2)
+
+# Save layer for use in other scripts
+saveRDS(planta_aguas_servidas_ptoDescarga,sprintf(file_rds,"planta_aguas_servidas_ptoDescarga"))
+rm(planta_aguas_servidas_ptoDescarga)
+
+
 ## Humedales 2015-----
 humedales <- st_read(sprintf(url_file_shp,folder,
                                         "Humedales_2015",
@@ -199,6 +214,22 @@ industria_forestal <- st_filter(industria_forestal,map_commune2)
 # Save layer for use in other scripts
 saveRDS(industria_forestal,sprintf(file_rds,"industria_forestal"))
 rm(industria_forestal)
+
+## Incendios_Forestales_2017-----
+incendio_forestal <- st_read(sprintf(url_file_shp,folder,
+                                      "Incendios_Forestales_2017",
+                                      "IF_temporada2017"))
+incendio_forestal <- st_transform(incendio_forestal,"EPSG:4326") %>% 
+  st_make_valid()
+
+# Spatial filter using 14 communes - to obtain the 23 lakes
+incendio_forestal <- st_filter(incendio_forestal,map_commune2)
+
+# Save layer for use in other scripts
+saveRDS(incendio_forestal,sprintf(file_rds,"incendio_forestal"))
+rm(incendio_forestal)
+
+
 
 ## Estaciones Meteorologicas-----
 meteorologica <- st_read(sprintf(url_file_shp,folder,
