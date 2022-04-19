@@ -394,50 +394,79 @@ saveRDS(maquinaria_forestal,sprintf(file_rds,"maquinaria_forestal"))
 rm(maquinaria_forestal)
 
 
+## Predios ----
+# create buffer around lake polygon
+lagos_zone <- readRDS("Data/Spatial Data/lagos_zone.rds")
+dist_filter <- 10*1e3 # 10 km
+lagos_zone <- st_buffer(lagos_zone, dist_filter)
 
-
-
-### Predios ----
-predios <- st_read(sprintf(url_file_shp,folder,
-                             "PREDIOS",
-                             "PREDIOSLOSLAGOS"))
-predios <- st_transform(predios,"EPSG:4326") %>% 
-  st_make_valid()
-
+# function for each region
+read_predio_filter <- function(foldername,filename){
+  # load
+  predios <- st_read(sprintf(url_file_shp,folder,
+                             foldername,filename))
+  predios <- st_transform(predios,"EPSG:4326") %>% 
+    st_make_valid()
 # Spatial filter using 14 communes - to obtain the 23 lakes
-predios <- st_filter(predios,map_commune2)
+  predios <- st_filter(predios,map_commune2)
+  # filter based on proximity to lake
+  # filter predios that fall inside buffer zone
+  predios <- st_filter(predios,lagos_zone)
+  return(predios)
+}
+#get predios
+predios_1 <- read_predio_filter("PREDIOS","PREDIOSARAUCANIA")
+predios_2 <- read_predio_filter("PREDIOS","PREDIOSLOSRIOS")
+predios_3 <- read_predio_filter("PREDIOS","PREDIOSLOSLAGOS")
 
-names(predios)
-predios %>% group_by(COMUNA) %>% tally()
-
-m <- f.interactive.map(predios,predios$COMUNA)
-m; rm(m)
+# join
+predios <- rbind(predios_1,predios_2,predios_3)
 
 # Save layer for use in other scripts
+# mapview(predios)
 saveRDS(predios,sprintf(file_rds,"predios"))
-rm(predios)
+rm(predios,predios_1,predios_2,predios_3)
+
+## Catastros de Uso de Suelo y Vegetacion -----
+# same method as before, filter based on buffer of lakes
+# we can use even the same function!
+uso_suelo_1 <- read_predio_filter("Catastro_uso_suelo_y_vegetacion",
+                                  "Catastro_RV_R09_2014")
+uso_suelo_2 <- read_predio_filter("Catastro_uso_suelo_y_vegetacion",
+                                  "CBN_XIV_2013")
+uso_suelo_3 <- read_predio_filter("Catastro_uso_suelo_y_vegetacion",
+                                  "CBN_10REG_2013")
+
+# play with names to make it coincide
+names(uso_suelo_2)[1:47] <- names(uso_suelo_2)[1:47] %>% str_to_upper()
+# remove extra names
+uso_suelo_1$COOR_ESTE <- NULL; uso_suelo_1$COOR_NORTE <- NULL
+uso_suelo_3$COOR_ESTE <- NULL; uso_suelo_3$COOR_NORTE <- NULL
 
 
-### Catastros de Uso de Suelo y Vegetacion -----
-uso_suelo <- st_read(sprintf(url_file_shp,folder,
-                             "Catastro_uso_suelo_y_vegetacion",
-                             "Catastro_RV_R09_2014"))
-uso_suelo <- st_transform(uso_suelo,"EPSG:4326") %>% st_make_valid()
+table(uso_suelo_1$USO)
 
-# Spatial filter using 14 communes - to obtain the 23 lakes
-uso_suelo <- st_filter(uso_suelo,map_commune2)
+uso_suelo_1$USO %>% unique
 
-
-### Catastros de Uso de Suelo y Vegetacion -----
-uso_suelo <- readRDS(sprintf(url_load_shp,"uso_suelo"))
-
+# join
+uso_suelo <- rbind(uso_suelo_1,uso_suelo_2,uso_suelo_3)
 table(uso_suelo$USO)
-m_uso_suelo <- f.interactive.map(uso_suelo, uso_suelo$USO)
-m_uso_suelo
+
+# get only terrenos agricolas 
+# other types:
+# Areas Sin Vegetacion Areas 556+526
+# Urbanas-Industriales 178+54       
+# Bosques 21843
+# Cuerpos de Agua   911
+# Humedales 143
+# Praderas y Matorrales 9187
+# Terrenos Agricolas  177+84
+uso_suelo <- uso_suelo %>% 
+  filter(USO %in% c("Terrenos Agricolas","Terrenos Agrícolas"))
 
 # Save layer for use in other scripts
 saveRDS(uso_suelo,sprintf(file_rds,"uso_suelo"))
-rm(uso_suelo)
+rm(uso_suelo,uso_suelo_1,uso_suelo_2,uso_suelo_3,lagos_zone)
 
 
 # MOP ----

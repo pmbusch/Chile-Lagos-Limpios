@@ -46,6 +46,8 @@ uf <- readRDS(sprintf(url_load_shp,"uf"))
 emisiones_uf <- readRDS(sprintf(url_load_shp,"emisiones_uf"))
 puentes <- readRDS(sprintf(url_load_shp,"puentes"))
 red_vial <- readRDS(sprintf(url_load_shp,"red_vial"))
+predios <- readRDS(sprintf(url_load_shp,"predios"))
+uso_suelo <- readRDS(sprintf(url_load_shp,"uso_suelo"))
 
 
 ## FEATURE DATA -------
@@ -180,32 +182,51 @@ m <- leaflet() %>%
             features = c("NOMBRE_CAMINO","CLASIFICACION","CARPETA","KM_F",
                          "ENROLADO","CONCESIONADO","ROL","CALZADA","ORIENTACION"),
             source="MOP, 2021",
-            polygon_form = "l",color="grey")
+            polygon_form = "l",color="grey") %>% 
+  add.Layer(predios,"Predios (<10km)",
+            features = c("COMUNA"),
+            source="MINVU, 2019",
+            color="brown") %>%
+  add.Layer(uso_suelo,"Uso de Suelo: Terrenos Agricolas (<10km)",
+            features = c("USO","USO_TIERRA","SUBUSO","SUPERF_HA"),
+            source="CONAF, 2016",
+            color="green")
 
+# menu of layers: https://stackoverflow.com/questions/67496042/leaflet-groupedlayercontrol-using-group-layers-in-r
   
 # Could automatize this part, don't know how yet
 groupsId <- c("North-Patagonian Lakes",
-              "Region","Province","Commune","Poblacion Urbana",
+              # administrative boundaries
+              "Region","Province","Commune",
+              # demography
+              "Poblacion Urbana",
               "Areas Pobladas",
-              "Establecimientos Salud",
-              "Humedales",
               "Comunidades Indigenas",
-              "Glaciares",
-              "Atractivos Turisticos",
+              "Predios (<10km)",
+              # socioeconomic
+              "Establecimientos Salud",
+              # industry
               "Planta Aguas Servidas",
-              "Punto Descarga Aguas Servidas",
-              "Aeropuertos y aerodromos",
+              "Industria Forestal",
+              "SMA - Proyectos con RCA aprobada (UF)",
+              # tourism
+              "Atractivos Turisticos",
               "Circuitos Turisticos",
-              "Embalses",
+              # environment
+              "Uso de Suelo: Terrenos Agricolas (<10km)",
+              "Humedales",
+              "Glaciares",
+              "Punto Descarga Aguas Servidas",
+              "SMA - Proyectos con RILES declarados",
+              "Incendios Forestales",
               "Estaciones Meteorologicas",
               "Estaciones Fluviometricas",
               "Estaciones Sedimentometricas",
-              "Industria Forestal",
-              "Incendios Forestales",
-              "SMA - Proyectos con RCA aprobada (UF)",
-              "SMA - Proyectos con RILES declarados",
+              # infrastructure
+              "Red Vial",
               "Puentes",
-              "Red Vial")
+              "Embalses",
+              "Aeropuertos y aerodromos")
 
 # create selectable layers
 m <- m %>% 
