@@ -124,7 +124,7 @@ add.Layer <- function(map,layer,
   # return with legend
   feat_return  %>% 
     addLegend(values = 1, group = group_l,
-              position = "bottomright", labels = group_l,
+              position = "bottomleft", labels = group_l,
               colors= color)
 }
 

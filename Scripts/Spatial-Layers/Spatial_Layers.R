@@ -237,10 +237,14 @@ m <- m %>%
 m
 
 
-mapshot(m, "Figures/Maps/SpatialLayers.html", selfcontained=F)
+mapshot(m, "Figures/Maps/CLL-Map.html", selfcontained=F)
 rm(m)
 
 # Clean WS -----
 rm(url_load_shp)
+
+
+# test: 
+# https://stackoverflow.com/questions/67496042/leaflet-groupedlayercontrol-using-group-layers-in-r
 
 ## EoF
