@@ -43,6 +43,23 @@ get_var_CASEN <- function(var_interest){
   # return(df_aux_nat)
 }
 
+# Function to get avg value for CLL ZOne
+get_var_CASEN_CLL <- function(var_interest,CLL=T){
+  # By communes of interest if CLL=T
+  if (CLL==T){
+    df_aux <- df_casen %>% 
+      filter(comuna %in% comunes_cll_codes2)
+  } else {
+    df_aux <- df_casen
+  }
+  
+  df_aux <- df_aux %>% 
+    summarise(var_mean=weighted.mean({{var_interest}},w = expc,na.rm=T),
+              var_median=weighted.median({{var_interest}}, w = expc,na.rm=T)) 
+  return(df_aux)
+}
+
+
 
 # df_casen %>%
 #   summarise(var_mean=weighted.mean(ytotcor,w = expc,na.rm=T),
@@ -146,6 +163,30 @@ df_education_nat <- df_education_nat %>%
   rename(perc_less_highschool=perc)
 
 df_education <- rbind(df_education_nat,df_education)
+
+# avg for all CLL communes (14)
+df_education_cll <- df_casen %>% 
+  filter(comuna %in% comunes_cll_codes2) %>% 
+  group_by(e6a) %>% 
+  summarise(hab=sum(expc,na.rm=T)) %>% 
+  mutate(perc=hab/sum(hab)) %>% 
+  ungroup() %>% 
+  left_join(df_codigoEducacion, by=c("e6a"="codigo")) %>% 
+  mutate(codigo_comuna="00",nombre_comuna="National level",
+         codigo_provincia="00",nombre_provincia="National level",
+         codigo_region="00",nombre_region="National level")
+
+df_education_cll <- df_education_cll %>% 
+  filter(e6a!=99) %>% # filtro respuesta no sabe (unknown)
+  mutate(menor_media=if_else(e6a<8,1,0)) %>% 
+  group_by(nombre_region,codigo_comuna,nombre_comuna,menor_media) %>% 
+  summarise(hab=sum(hab,na.rm=T)) %>% 
+  mutate(perc=hab/sum(hab)*100) %>% 
+  ungroup() %>% 
+  filter(menor_media==1) %>% 
+  select(nombre_region,codigo_comuna,nombre_comuna,perc) %>% 
+  rename(perc_less_highschool=perc)
+
 
 # plot
 fig_education <- df_education %>% 

@@ -479,6 +479,7 @@ source("Tourism.R",encoding = "UTF-8")
 
 - Number of visitors per year
 - Other number of things, like: # of restaurants,# hotels, # of tourism attractions, ...
+- See https://www.ine.cl/estadisticas/sociales/mercado-laboral/empleo-en-las-actividades-caracteristicas-del-turismo
 
 
 Key Questions:
