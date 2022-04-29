@@ -89,6 +89,7 @@ add.Layer <- function(map,layer,
                       polygon_form="a",
                       group_l="default",
                       color="black",
+                      pos_leg="bottomleft",
                       ...){
   
   group_l <- if (group_l=="default") title else group_l
@@ -124,7 +125,7 @@ add.Layer <- function(map,layer,
   # return with legend
   feat_return  %>% 
     addLegend(values = 1, group = group_l,
-              position = "bottomleft", labels = group_l,
+              position = pos_leg, labels = group_l,
               colors= color)
 }
 
