@@ -32,11 +32,11 @@ names(gdp) <- c("year","region",actividad_levels)
 gdp <- gdp %>% 
   fill(year) %>% 
   filter(!is.na(region)) %>% 
-  mutate(region=if_else(region=="Total","Nacional",region)) %>% 
+  mutate(region=if_else(region=="Total","NATIONAL",region)) %>% 
   mutate(region=factor(region,
                           levels=c("AyP","TPCA","ANTOF","ATCMA","COQ","VALPO",
                                    "RM","LGBO","MAULE","BBIO","ARAUC","RIOS",
-                                   "LAGOS","AYSEN","MAG","Nacional")))
+                                   "LAGOS","AYSEN","MAG","NATIONAL")))
 
 # flat table
 gdp <- gdp %>% 
@@ -74,12 +74,12 @@ fig_gdp_all <- gdp %>%
 # Same plot but for regions of interest
 fig_gdp <- gdp %>% 
   filter(year==2019) %>% 
-  filter(region %in% c("ARAUC","RIOS","LAGOS","Nacional")) %>% 
+  filter(region %in% c("ARAUC","RIOS","LAGOS","NATIONAL")) %>% 
   ggplot(aes(region,gdp_perc,fill=Actividad))+
   geom_col(position=position_fill(reverse = TRUE))+
   geom_text(data=filter(gdp, year==2019,
                         Actividad=="Comercio, Restaurantes y Hoteles",
-                        region %in% c("ARAUC","RIOS","LAGOS","Nacional")),
+                        region %in% c("ARAUC","RIOS","LAGOS","NATIONAL")),
             aes(y=gdp_perc_cum-gdp_perc/2,label=gdp_perc_label),
   )+
   coord_flip(expand = F)+scale_x_discrete(limits=rev)+
@@ -87,7 +87,8 @@ fig_gdp <- gdp %>%
   theme(legend.position = "bottom",
         legend.text = element_text(size=7))+
   labs(x="Region",y="% Share of GDP",
-       caption = "Banco central 2019. Share for Comercio, Restaurantes y Hoteles is shown")
-
+       caption = expression(paste(italic(
+         "Banco central 2019. Share for Comercio, Restaurantes y Hoteles is shown"))))
+# fig_gdp
 
 ## EoF

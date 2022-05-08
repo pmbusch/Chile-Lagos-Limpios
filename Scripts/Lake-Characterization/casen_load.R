@@ -84,7 +84,10 @@ df_income <- get_var_CASEN(ytotcor) %>%
 # usd to clp
 usd_clp <- 800
 
+nat_level <- filter(df_income,nombre_comuna=="National level")$income_median*12/usd_clp
+
 fig_income_med <- df_income %>% 
+  filter(nombre_comuna!="National level") %>% 
   left_join(map_commune) %>% 
   mutate(latitude_commune=if_else(is.na(latitude_commune),
                                   -30,latitude_commune)) %>%   # to sort
@@ -92,13 +95,25 @@ fig_income_med <- df_income %>%
   ggplot(aes(reorder(nombre_comuna,latitude_commune),income_median_usd,
              fill=nombre_region))+
   geom_col()+
+  geom_hline(yintercept = nat_level,
+             linetype="dashed")+
+  geom_text(x=12,y=nat_level+80, label="National average",angle=90)+
   coord_flip()+
   labs(x="",y="Median annual income (USD)",fill="Region",
-       caption="Source: CASEN Socioeconomic Survey 2017. \n A value of 800 clp per USD was used.")
+       caption=expression(paste(italic(
+         "Source: CASEN Socioeconomic Survey, 2017. \n A value of 800 clp per USD was used."))))+
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 4800))+  
+  theme(legend.position = c(0.9,0.5),
+        plot.caption=element_text(vjust=-3,lineheight = 1))  # caption: reduce size and line separation
+# fig_income_med
+
 
 # f_savePlot(fig_income,"Figures/median_income.png")
 
+nat_level <- filter(df_income,nombre_comuna=="National level")$income_mean*12/usd_clp
+
 fig_income <- df_income %>% 
+  filter(nombre_comuna!="National level") %>% 
   left_join(map_commune) %>% 
   mutate(latitude_commune=if_else(is.na(latitude_commune),
                                   -30,latitude_commune)) %>%   # to sort
@@ -106,9 +121,18 @@ fig_income <- df_income %>%
   ggplot(aes(reorder(nombre_comuna,latitude_commune),income_mean_usd,
              fill=nombre_region))+
   geom_col()+
+    geom_hline(yintercept = nat_level,
+               linetype="dashed")+
+    geom_text(x=12,y=nat_level+100, label="National average",angle=90)+
   coord_flip()+
   labs(x="",y="Mean annual income (USD)",fill="Region",
-       caption="Source: CASEN Socioeconomic Survey 2017. \n A value of 800 clp per USD was used.")
+       caption=expression(paste(italic(
+         "Source: CASEN Socioeconomic Survey, 2017. \n A conversion value of 800 clp per USD was used."))))+
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 7200))+ 
+  theme(legend.position = c(0.8,0.8),
+    plot.caption=element_text(vjust=-3,lineheight = 1))  # caption: reduce size and line separation
+# fig_income
+rm(nat_level)
 # f_savePlot(fig_income,"Figures/mean_income.png")
 
 
@@ -187,19 +211,27 @@ df_education_cll <- df_education_cll %>%
   select(nombre_region,codigo_comuna,nombre_comuna,perc) %>% 
   rename(perc_less_highschool=perc)
 
+nat_level <- filter(df_education,nombre_comuna=="National level")$perc_less_highschool
 
 # plot
 fig_education <- df_education %>% 
+  filter(nombre_comuna!="National level") %>% 
   left_join(map_commune) %>% 
   mutate(latitude_commune=if_else(is.na(latitude_commune),
                                   -30,latitude_commune)) %>%   # to sort
   ggplot(aes(reorder(nombre_comuna,latitude_commune),perc_less_highschool,
              fill=nombre_region))+
   geom_col()+
+  geom_hline(yintercept = nat_level,
+             linetype="dashed")+
+  geom_text(x=12,y=nat_level+1, label="National average",angle=90)+
   coord_flip()+
     labs(x="",y="% of population with less than high school education",fill="Region",
-       caption="Source: CASEN Socioeconomic Survey 2017.")
-
+       caption=expression(paste(italic("Source: CASEN Socioeconomic Survey, 2017."))))+
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 68))+ 
+  theme(legend.position = c(0.9,0.8),
+        plot.caption=element_text(vjust=-3,lineheight = 1))  # caption: reduce size and line separation
+# fig_education
 # f_savePlot(fig_education,"Figures/high_school.png")
 
 
@@ -278,10 +310,13 @@ fig_health <- df_healthProvider_plot %>%
   coord_flip()+
   labs(x="",y="% of population affiliated to each health provider",
        fill="Health Provider",
-       caption="Source: CASEN Socioeconomic Survey 2017. \n Note: Fonasa A indicates a lower income than Fonasa D.")+
+       caption=expression(paste(italic(
+         "Source: CASEN Socioeconomic Survey, 2017. \n Note: Fonasa A indicates a lower income than Fonasa D."))))+
   guides(fill = guide_legend(reverse=TRUE))+
-  theme(legend.position="bottom")
-
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 100.1))+ 
+  theme(legend.position="bottom",
+        plot.caption=element_text(vjust=-3,lineheight = 1))  # caption: reduce size and line separation
+fig_health
 # f_savePlot(fig_health,"Figures/healthprovider.png")
 
 ## EoF

@@ -22,23 +22,23 @@ names(pop_proj)
 
 # DATA WRANGLING ------------
 ## Trend Population to 2035 by commune ---- 
-pop_commune <- pop_proj %>% 
+pop_commune_proj <- pop_proj %>% 
   filter(Comuna %in% comunes_cll_codes) %>% 
   mutate(codigo_comuna=if_else(str_length(Comuna)==4,
                                paste0("0",Comuna),
                                paste0("",Comuna)))
 
 # pop_commune$codigo_comuna %>% unique()
-names(pop_commune) <- names(pop_commune) %>% f_remover_acentos() %>% 
+names(pop_commune_proj) <- names(pop_commune_proj) %>% f_remover_acentos() %>% 
   str_replace_all(" ","_")
 
 # Data wrangling
-pop_commune_wide <- pop_commune %>% 
+pop_commune_wide <- pop_commune_proj %>% 
   pivot_longer((10:43),names_to ="year",values_to="population",) %>% 
   mutate(year=str_remove_all(year,"Poblacion_"),
          Nombre_Comuna=f_remover_acentos(Nombre_Comuna))
 
-pop_commune_cll <- pop_commune_wide %>% 
+pop_commune_cll_proj <- pop_commune_wide %>% 
   group_by(Nombre_Comuna,codigo_comuna,year) %>% 
   summarise(pop=sum(population,na.rm=T))
 

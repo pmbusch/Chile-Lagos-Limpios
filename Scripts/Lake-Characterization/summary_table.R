@@ -19,7 +19,7 @@ pop_region <- pop_district %>%
 ## On Shore
 cities_lakes <- read_excel(sprintf(url_file,"Cities-Lakes.xlsx"), 
                            sheet = "Cities-Lakes", range = "A1:C13")
-pop_shore <- c(sum(cities_lakes$`Pop District Census 2017`),0)
+pop_shore <- c(sum(cities_lakes$`Pop District Census 2017`),NA)
 
 
 # Demographics -----
@@ -42,11 +42,11 @@ pop_indigineous <- c(
 pop_indigineous <- pop_indigineous/pop*100
 
 # Clean
-rm(pop_commune,pop_commune_cll,fig_pop,cod_commune,
+rm(pop_commune,fig_pop,cod_commune,
    pop_district,pop_district_cll, cities_lakes)
 
 ## pop trend
-source("Scripts/Lake-Characterization/LoadData-Population.R", 
+source("Scripts/Lake-Characterization/LoadData-Population.R",
        encoding = "UTF-8")
 
 # checks
@@ -104,29 +104,29 @@ gdp <- gdp/c(pop_region,pop[2])
 table_metrics <- tibble()
 # Construct table
 table_metrics <- rbind(table_metrics,
-                       cbind("Population","Census 2017",
+                       cbind("Population","Census, 2017",
                              "Only 14 communes in Lakes district considered",
                              t(pop)),
-                       cbind("Population on-shore","Census 2017",
+                       cbind("Population on-shore","Census, 2017",
                              "Population in urban areas in 10km range from lake shore",
                              t(pop_shore)),
-                       cbind("% Urban","Census 2017",
+                       cbind("% urban","Census, 2017",
                              "Only 14 communes in Lakes district considered",
                              t(pop_urban)),
-                       cbind("% Indigenous origin","Census 2017",
+                       cbind("% ethnic origin","Census, 2017",
                              "Only 14 communes in Lakes district considered",
                              t(pop_indigineous)),
-                       cbind("Avg. annual growth rate to 2035 (%)",
-                             "INE Porjections","Calculated with an annual componduing rate assumption",
+                       cbind("Expected pop. growth (%)",
+                             "INE Projections to 2035","Calculated with an annual componduing rate assumption",
                              t(pop_crec)),
                        cbind("GDP per capita (USD)","Banco Central 2019",
                              "USD value of 800 used. GDP for 3 regions considered",
                              t(gdp)),
-                       cbind("Median Annual Income (USD)","CASEN 2017",
+                       cbind("Median annual Income (USD)","CASEN, 2017",
                              "USD value of 800 used. Communal expansion factors used. Only 14 communes in Lakes district considered",
                              t(median_income)),
                        cbind("% People with less than high school education",
-                             "Casen 2017"," Communal expansion factors used. Only 14 communes in Lakes district considered",
+                             "CASEN, 2017"," Communal expansion factors used. Only 14 communes in Lakes district considered",
                              t(education))
                       )
 names(table_metrics) <- c("Metric","Source","Notes","Lakes Zone","Chile")
@@ -134,12 +134,23 @@ names(table_metrics) <- c("Metric","Source","Notes","Lakes Zone","Chile")
 table_metrics$`Lakes Zone` <- as.numeric(table_metrics$`Lakes Zone`)
 table_metrics$Chile <- as.numeric(table_metrics$Chile)
 
-table_metrics %>% select(-Source,-Notes) %>% 
+
+table_summary <- table_metrics %>% 
+  # select(-Source,-Notes) %>%
+  select(-Notes) %>% 
+  relocate(Source,.after=Chile) %>% 
+  # relocate(Notes,.after=Source) %>% 
   flextable() %>% autofit() %>% 
-  colformat_double(i=c(1:2,6:7),j=2:3,digits = 0,big.mark = " ") %>% 
-  colformat_double(i=c(3:5,8),j=2:3,digits=2)
+  colformat_double(i=c(1:2),digits = 0,big.mark = " ") %>% 
+  colformat_double(i=c(6,7),prefix = "$",digits=0, big.mark = " ") %>% 
+  colformat_double(i=c(5),digits=2, suffix="%") %>% 
+  colformat_double(i=c(3,4,8),digits=0,suffix ="%") %>% 
+  bold(part="header") %>% 
+  italic(i=c(2,3,4),j=1) %>% 
+  align(i=c(2,3,4),j=1, align="right")
 
-
+# save object ----
+saveRDS(table_summary,"Data/table_summary.rds")
 
 
 ## EoF

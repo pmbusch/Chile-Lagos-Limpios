@@ -26,6 +26,20 @@ info_spatialLayers <- info_spatialLayers %>%
 
 # Change layer names
 info_spatialLayers <- info_spatialLayers %>% 
+  mutate(layer_name=case_when(
+    layer_name=="aeropuertos" ~ "Airports",
+    layer_name=="areas_silvestres_protegidas" ~ "Protected Wild Areas",
+    layer_name=="glaciares" ~ "Glaciers",
+    layer_name=="atractivos_turisticos" ~ "Tourist Attractions",
+    layer_name=="planta_aguas_servidas" ~ "Wastewater Treatment Plants",
+    layer_name=="humedales" ~ "Wetlands",
+    layer_name=="industria_forestal" ~ "Forest Industry",
+    layer_name=="meteorologica" ~"Meteorological Stations",
+    layer_name=="establecimiento_salud" ~ "Health Facilities",
+    layer_name=="comunidad_indigena" ~ "Indigenous Communities"))
+
+
+info_spatialLayers <- info_spatialLayers %>% 
   mutate(layer_name=layer_name %>% 
            str_replace_all("_"," ") %>% 
            str_to_title())
@@ -41,26 +55,45 @@ info_spatialLayers <- info_spatialLayers %>%
          `Lakes Zone`=n_zone)
 
 # reorder row
-levels <- c("Comunidad Indigena", 
-            "Areas Silvestres Protegidas",
-            "Glaciares",
-            "Humedales",
-            "Atractivos Turisticos",
-            "Aeropuertos",
-            "Establecimiento Salud",
-            "Meteorologica",
-            "Planta Aguas Servidas",
-            "Industria Forestal")
+
+# levels <- c(
+#   "Comunidad Indigena",
+#   "Areas Silvestres Protegidas",
+#   "Glaciares",
+#   "Humedales",
+#   "Atractivos Turisticos",
+#   "Aeropuertos",
+#   "Establecimiento Salud",
+#   "Meteorologica",
+#   "Planta Aguas Servidas",
+#   "Industria Forestal")
+
+levels <- c(
+  "Indigenous Communities",
+  "Protected Wild Areas",
+  "Glaciers",
+  "Wetlands",
+  "Tourist Attractions",
+  "Airports",
+  "Health Facilities", 
+  "Meteorological Stations",
+  "Wastewater Treatment Plants",
+  "Forest Industry")
+
 info_spatialLayers <- info_spatialLayers %>% 
   mutate(Metric=factor(Metric,levels = levels)) %>% 
   arrange(Metric)
 
+
 # Table ------
-info_spatialLayers %>% 
+table_spatial <- info_spatialLayers %>% 
   select(-n_chile) %>% 
   flextable() %>% autofit() %>% 
   colformat_double(j=3,digits=1,suffix = "%") %>% 
-  set_caption("Number of features found in Lakes Zone (14 communes)")
+  bold(part="header")
+# table_spatial
+
+saveRDS(table_spatial,"Data/table_spatial.rds")
 
 
 rm(levels)

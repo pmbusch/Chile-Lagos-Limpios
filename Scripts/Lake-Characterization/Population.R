@@ -16,7 +16,8 @@ cod_commune <- read_csv2(
           "Censo2017/Censo2017_16R_ManzanaEntidad_CSV/Censo2017_Identificacion_Geografica/Microdato_Censo2017-Comunas.csv"))
 
 pop_district <- read_csv2(
-  sprintf(url_file,"Censo2017/Censo2017_16R_ManzanaEntidad_CSV/Censo2017_Manzanas.csv"))
+  sprintf(url_file,"Censo2017/Censo2017_16R_ManzanaEntidad_CSV/Censo2017_Manzanas.csv"),
+  na = "*")
 
 # str(pop_district)
 names(pop_district)
