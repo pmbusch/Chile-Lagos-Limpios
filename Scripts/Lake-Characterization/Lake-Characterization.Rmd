@@ -5,6 +5,7 @@ date: "May 2022"
 output:
   word_document:
     reference_doc: CLL_Template.docx
+    fig_caption: yes
   html_document:
     theme: readable
     toc: no
@@ -23,22 +24,16 @@ knitr::opts_chunk$set(fig.pos = 'H',
 
 # Executive Summary
 
-The main purpose of this document is to provide a **descriptive characterization of the 23 North-Patagonian lakes**. The NGO Chile Lagos Limpios advocates for the protection of these lakes, along with a sustainable development in the zone. The characterization is divided in the following sections:
-
-- Physical attributes of the lakes
-- Demographics of the zone
-- Socioeconomic conditions
-- Industrial presence
+The main purpose of this document is to provide a **descriptive characterization of the 23 North-Patagonian lakes**. The NGO Chile Lagos Limpios advocates for the protection of these lakes, along with a socioeconomic sustainable development in the zone. 
 
 ```{r, echo=F, message=F, warning=F}
 # setwd("Scripts/Lake-Characterization") # only for debbuging without kniting
 source("../00-Common.R", encoding = "UTF-8")
 ```
 
-The 23 North-Patagonian lakes span across multiple jurisdictions in the south of Chile: 3 regions, 5 provinces and 14 communes, with 12 cities located directly on the shore of lakes. Approximately half-million people live in the zone, 130 thousands of them directly on shore.
+The 23 North-Patagonian lakes span across multiple jurisdictions in the south of Chile: 3 regions, 5 provinces and 14 communes, with 12 cities located directly on the shore of lakes. Approximately half-million people live in the zone, while 130 thousand people live  directly on the shore of lakes.
 
-The zone is relatively poor with respect to other parts of the country, with a lower income, educational level and access to services. The main industries in the zone correspond to natural resources extraction, such as forestry and silviculture.
-
+The zone is relatively poor with respect to other parts of the country, with a lower income, educational level and access to services. The main industrial activity in the zone correspond to natural resources extraction, such as forestry and silviculture. The next table presents some key descriptive statistics for the zone current conditions, relative to the national average:
 
 ```{r}
 table_summary <- read_rds("../../Data/table_summary.rds")
@@ -49,22 +44,30 @@ table_summary %>%
 ```
 
 
-The conditions in the region are likely to change in the upcoming years due to: population migration from rest of the country due to changing climatic conditions, further urbanization of the zone and improvement in the infrastructure and socioeconomic conditions to achieve national levels.
+The conditions in the zone could potentially change in the upcoming years due to: population migration from rest of the country due to changing climatic conditions, further urbanization of the zone and improvement in the infrastructure and socioeconomic conditions to reach national levels.
 
-The zone is richly diverse in terms of natural ecosystems (lakes, wetlands, mountains), industries and human settlements, including indigenous communities. This intersectionality provides additional challenges to the protection of the lakes.
+As shown in the next table, the zone is richly diverse in the presence of: natural ecosystems (lakes, wetlands, mountains), industries, infrastructure and human settlements, including a high presence of indigenous communities. This intersectionality provides additional challenges to coordinate the protection of the North-Patagonian lakes.
 
 
 ```{r}
 table_spatial <- readRDS("../../Data/table_spatial.rds")
 table_spatial %>% 
-  set_caption("Number of features found in Lakes Zone (14 communes). % of population with respect to Chile is 3.18%.",
+  set_caption("Number of features found in Lakes Zone (14 communes). Percentage of population with respect to Chile is 3.18%.",
               autonum = autonum)
 ```
+
+The document is divided in the following sections to characterize the North-Patagonian lakes: 
+
+- Administrative boundaries
+- Physical attributes of the lakes
+- Demographics of the zone
+- Socioeconomic conditions
+- Industrial activity
 
 
 # Location and administrative boundaries
 
-The following map shows the location of the 23 lakes in the south of Chile, along with their name tag. One can also exlore the region following this [link](https://www.google.cl/maps/@-40.0227319,-72.4363978,8z/data=!5m1!1e4). \newline
+The following map shows the location of the 23 lakes in the south of Chile. The lakes span between latitudes -39° to -42°. One can also explore the region following this [link](https://www.google.cl/maps/@-40.0227319,-72.4363978,8z/data=!5m1!1e4). \newline
 
 ![Location of the 23 lakes](../../Figures/map.png)
 
@@ -72,40 +75,43 @@ The following map shows the location of the 23 lakes in the south of Chile, alon
 
 The 23 North-Patagonian lakes fall into different administrative boundaries, in particular:
 
-- 3 Regions - Araucania, Los Rios and Los Lagos
-- 5 Provinces
-- 14 communes
-- 12 cities (or urban settlements) are on the shore of 5 lakes. *Note: The city identification was made by using the district census 2017 for urban population, that present spatial information about urban population.*
+- **3 Regions** - Araucania, Los Rios and Los Lagos
+- **5 Provinces**
+- **14 communes**
+- **12 cities** (or urban settlements) are on the shore of 5 lakes. *Note: The identification of each city  was made by using the district census 2017 for urban population, that presents spatial information about urban population.*
 
-The following table presents the geographical classification of the 23 lakes (sorted by latitude), indicating to which administration each lake belong. Some lakes share boundaries with multiple local jurisdiction, that may generate administrative problems. \newline
+The following table presents the geographical classification of the 23 lakes (sorted by latitude), indicating to which administration each lake belong. We notice that 8 lakes span across multiple communes, and 3 of them span across multiple provinces. In particular, lake Llanquihue is located withing the administrative boundaries of 4 communes and 2 provinces. A shared jurisdiction could difficult the coordination to protect the lakes. \newline
 
 ```{r}
 source("01-LoadData-Boundaries-Physical.R",encoding = "UTF-8")
 ind <- physical_ind
-# ind %>%
-#   left_join(cities_lakes) %>%
-#   group_by(Region,Province,Commune,Lake,Latitude, City) %>%
-#   summarise(count=n()) %>%
-#   arrange(desc(Latitude)) %>%
-#   flextable(col_keys = c("Region","Province","Commune","Lake", "City")) %>%
-#   autofit(add_w = 0.1, add_h = 0.3) %>%
-#   set_caption(caption="Administrative location of the North-Patagonian lakes",
-#               autonum=autonum) %>%
-#   bold(j=4) %>% bold(part="header") %>%
-#   merge_v(1:4) %>% border(border.bottom = fp_border())
+ind %>%
+  left_join(cities_lakes) %>%
+  group_by(Region,Province,Commune,Lake,Latitude, City) %>%
+  summarise(count=n()) %>%
+  arrange(desc(Latitude)) %>%
+  flextable(col_keys = c("Region","Province","Commune","Lake", "City")) %>%
+  autofit(add_w = 0.1, add_h = 0.3) %>%
+  set_caption(caption="Administrative location of the North-Patagonian lakes. Lakes are sorted by latitude.",
+              autonum=autonum) %>%
+  bold(j=4) %>% bold(part="header") %>%
+  merge_v(1:4) %>% border(border.bottom = fp_border())
 ```
 
 # Physical Attributes
 
-Let's start with the description of the physical attributes of the North-Patagonian lakes.
+This section presents the physical attributes of the 23 North-Patagonian lakes.
 
 ## Lake Size - Area and Volume
 
-Let's look at the area and volume of each lake. We note that for 9 lakes we don't have information about their total volume. These lakes are: Lago Huilipilún, Lago Pullinque, Lago Pellaifa, Lago Huishue, Lagunas Gemelas, Lago Gris, Lago Constancia, Lago Rupanco and Lago Chapo. Lake Taho attributes are provided for reference, showing that 2 chilean lakes are of similar size: Lago Llanquihue and Lago Ranco.
+The next figure presents the area and volume of each lake. We note that for **9 lakes we don't have information about their total volume**. These lakes are: Lago Huilipilún, Lago Pullinque, Lago Pellaifa, Lago Huishue, Lagunas Gemelas, Lago Gris, Lago Constancia, Lago Rupanco and Lago Chapo. Lake Tahoe attributes are provided for reference, showing that two Chilean lakes have a similar size: Lago Llanquihue and Lago Ranco.
 
-```{r}
+```{r fig_area, fig.cap="\\label{fig:fig_area}Area and Volume of the 23 North-Patagonian lakes"}
 library(ggforce)
 # Ideas: https://stackoverflow.com/questions/45221783/ggforce-facet-zoom-labels-only-on-zoomed-example
+
+# source("facet_zoom2.R", encoding = "UTF-8")
+# does not work with smart labels
 
 # we need to create an additional data frame to show on the un-zoomed panel, but without the label
 zoom_data <- ind %>% 
@@ -131,7 +137,8 @@ ind %>%
        Volume data for 9 lakes is missing."))))+
   geom_point(data=tahoe,col="black",size=3)+
   geom_text_repel(data=tahoe, aes(label=Name))+
-  facet_zoom(zoom.data=zoom, 
+  facet_zoom(
+    zoom.data=zoom,
              xlim = c(0, 250), ylim=c(0,30),
              zoom.size = 1.5)
 rm(zoom_data)
@@ -139,37 +146,49 @@ rm(zoom_data)
 
 ##	Meteorological Stations
 
-We have data on how many meteorological stations exist in each lake. We observe that the majority of the lakes does not have meteorological stations, meaning that we can only rely on extrapolations or models to understand the climate surrounding these lakes. 
+The next table shows the number meteorological stations in each lake. We observe that the majority of the lakes does not have meteorological stations near them, meaning that we can only rely on extrapolations or models to understand the climate surrounding these lakes. 
 
 ```{r}
+# ind %>%
+#   filter(Meteorological_Stations>0) %>% 
+#   ggplot(aes(reorder(Lake,Latitude),
+#              Meteorological_Stations))+
+#   geom_col(aes(fill=Region))+
+#   coord_flip(expand = F)+
+#   labs(x="", y="# of Meteorological Stations", 
+#        caption=expression(paste(italic("Note: Lakes without a meteorological station are ommited"))))
+
 ind %>%
   filter(Meteorological_Stations>0) %>% 
-  ggplot(aes(reorder(Lake,Latitude),
-             Meteorological_Stations))+
-  geom_col(aes(fill=Region))+
-  coord_flip(expand = F)+
-  labs(x="", y="# of Meteorological Stations", 
-       caption=expression(paste(italic("Note: Lakes without a meteorological station are ommited"))))
+  group_by(Region,Lake) %>% 
+  arrange(desc(Latitude)) %>% 
+  summarise(`Number of Meteorological Stations`=sum(Meteorological_Stations)) %>% 
+  flextable() %>% autofit(add_w = 0.1, add_h = 0.3) %>%
+  set_caption(caption="Number of Meteorological Stations near lakes. Lakes without a station are omitted",
+              autonum=autonum) %>%
+  bold(part="header") %>% merge_v(j=1) %>% 
+  hline(i=c(4,10,14))
+
 ```
 
 # Demography
 
-An important aspect of the characterization of the North-Patagonian lakes is the population that lives in the zone. Without a regulated human development in the zone it could harmfully impact lake's condition.
+An important aspect of the characterization of the North-Patagonian lakes is the population that inhabits in the zone. A regulated human development in the zone us a necessary condition to protect and preserve the lakes natural characteristics.
 
 ## Population Characterization - Census 2017
 
-We start using recent [census data](http://www.censo2017.cl/) (or National Census Bureau), and observe that more than half million people live in the 14 commune. Total population in the 14 communes is 558,798. For the 3 regions, that covers more area than the location of the 23 lakes, we have a total population of 2,170,769.
+All population data comes from [census data](http://www.censo2017.cl/) (or National Census Bureau). We observe that more than half million people live in the 14 communes that contains the 23 North-Patagonian lakes. In particular, the total population in the 14 communes is 558,798. For the 3 regions, that covers a larger area than the location of the 23 lakes, we have a total population of 2,170,769 inhabitants.
 
-```{r}
+```{r fig_pop, fig.cap="\\label{fig:fig_pop} Population in each of the 14 communes where the North-Patagonian lakes are located"}
 source("Population.R",encoding = "UTF-8")
 fig_pop + labs(caption=expression(paste(italic("Source: Census, 2017"))))
 ```
 
 ### Urban Population
 
-Regarding population detail, we can observe the proportion of urban and rural population. In general, we observe that bigger communes have a greater share of urban population. The pattern in the communes in the zone of interest does not align with the national average. In particular, the zone has an average of 72% urban population, compared to the 88% national average.
+Using the Census data, we can also explore the proportion of urban and rural population. In general, we observe that bigger communes have a greater share of urban population. The share of urban population in the communes in the zone of interests lower than the national average. In particular, the zone has an average of 72% urban population, compared to the 88% national average.
 
-```{r}
+```{r fig_urban, fig.cap="\\label{fig:fig_urban} Share of urban and rural population per commune"}
 # pop by commune and area
 pop_commune <- pop_district %>% 
   group_by(COMUNA,AREA) %>%
@@ -178,8 +197,7 @@ pop_commune <- pop_district %>%
   filter(COMUNA %in% comunes_cll_codes) %>% 
   mutate(Urbano=factor(if_else(AREA==1,"Urban","Rural"),
                        levels=c("Urban","Rural")))
-```
-```{r}
+
 # Calculate percentage
 total_pop <- pop_commune %>% 
   group_by(COMUNA) %>% 
@@ -206,11 +224,11 @@ total_pop %>%
 # f_savePlot(last_plot(),"Figures/pop_urban.png")
 ```
 
-### Population self-identified as belonging to an originary ethnic:
+### Population self-identified as belonging to an originary ethnic
 
-Another aspect of interest is the strong presence of indigenous communities in the zone. Around 12% of the national population identified themselves as belonging to an originary ethnic. The communes of interest shows a much higher proportion of 25%, with some communes with over 40% of their population belonging to an originary ethnic.
+Another aspect of interest is the strong presence of indigenous communities in the zone. Around 12% of the national population identified themselves as belonging to an originary ethnic. The communes of interest shows a much higher proportion of 25%, with some communes having over 40% of their population belonging to an originary ethnic.
 
-```{r}
+```{r fig_ethnic, fig.cap="\\label{fig:fig_ethnic} Share of population with ethnic origin per commune"}
 # Calculate percentage
 pop_commune <- pop_district %>% 
   group_by(COMUNA) %>%
@@ -263,14 +281,13 @@ pop_commune %>%
 
 ### Population at shores
 
-Doing some spatial analysis, we can identify urban population directly on the shore of the North-Patagonian lakes. We note the following interesting points:
+Using the spatial information provided by the Census data we can identify urban population directly on the shore of the North-Patagonian lakes. The next figure presents the population of the 12 cities that are directly on shore of 5 lakes. We note the following interesting points:
 
-- Only 5 lakes have a surrounding urban city in its shore.
 - The total population in the shore of lakes is 128,153.
 - Lago Llanquihue and Villarica got the more cities and population directly on their shores.
-- The analysis **does not** consider tourism visits nor rural population in the proximity of lakes.
+- The analysis **does not** consider tourism visits nor rural population in the proximity of lakes. Both factors could increase the total number of people that lived near the lake during the year or during the seasonal vacation period (summer).
 
-```{r}
+```{r fig_shore, fig.cap="\\label{fig:fig_shore} Urban population living directly on shore of lakes"}
 ind %>% 
   left_join(cities_lakes) %>% 
   filter(Pop_District_Census_2017>0) %>%
@@ -289,15 +306,12 @@ ind %>%
 # f_savePlot(last_plot(),"Figures/cities_pop.png")
 ```
 
-## Tourism
-
-Regarding tourism in the zone, according to [SNASPE](https://www.conaf.cl/parques-nacionales/visitanos/estadisticas-de-visitacion/) (National System of Protected Wilderness Areas of the State), in 2018 1,271,835 people visited national parks in the 3 regions of interest.
 
 ## Population Trends
 
 Another important aspect of demographics are population trends and expected growth. For this aspect, we can use the official population projections by commune, as predicted by INE (National Institute of Statistics):
 
-```{r}
+```{r fig_proj, fig.cap="\\label{fig:fig_proj} Official projections of population growth at commune level"}
 source("LoadData-Population.R",encoding = "UTF-8")
 pop_commune_cll_proj %>% 
   mutate(pop=pop/1000,
@@ -323,23 +337,35 @@ Population projects at this level of detail are not that much useful, as it miss
 - International immigration
 - Urban growth in the zone
 
-Further studies could be carried to analyze potential migration scenarios to the zone. Nevertheless, this analysis shows that according to official estimations the population in the zone is not expected massive growth, so probably it does not have the priority to build adequate infrastructure and prepare to massive migrations, in case they do occur.
+**Further studies could be carried to analyze potential migration scenarios to the zone**. Nevertheless, this analysis shows that according to official estimations the population in the zone is not expected a massive growth. This inadequacy in the projections could result in the lack of planning for the necessary infrastructure that the zone needs to develop and to prepare for massive population increase.
+
+## Tourism
+
+An important aspect of the demographics of the zone, is the total number of people from other parts of the country (or international) that visit the zone. We can use data from [SNASPE](https://www.conaf.cl/parques-nacionales/visitanos/estadisticas-de-visitacion/) (National System of Protected Wilderness Areas of the State) to get the total number of visitors to protected areas. In 2019 1,420,949 people visited protected wild areas in the 3 regions of interest. Most of the visitors visited national parks. In particular, the most visited park (Vicente Perez Rosales) is located near the shores of lake Llanquihue and Lake Todos Los Santos, and has more annual visitors than the total population living in the communes of interest.
+
+```{r fig_conaf, fig.cap="\\label{fig:fig_conaf} Total number of visitors in 2019 to protected wilderness areas"}
+# load data
+source("snaspe.R", encoding = "UTF-8")
+p_snaspe
+
+```
+
 
 # Socioeconomic Analysis
 
-To better characterize the zone where the North-Patagonian lakes are located, additional to understand the total population in the area we also need to study the living conditions of them. This section presents a socioeconomic analysis of the zone, based on publicly available data.  
+To better characterize the zone where the North-Patagonian lakes are located, we also need to study the living conditions of the population living here. This section presents a socioeconomic analysis of the zone, based on publicly available data. 
 
 ## GDP Share per region
 
-We can start the analysis with some high levels statistics from the zone, in particular the GDP. According to the Central Bank of Chile, the combined GDP per capita of the regions is \$6,180 USD, much lower than the national average of \$11,001 USD. 
+We can start the analysis with macro statistics from the zone, in particular the GDP (Gross domestic product). According to the Central Bank of Chile, the combined GDP per capita of the 3 regions is \$6,180 USD per person, much lower than the national average of \$11,001 USD per person.
 
-We can also observe the category detail of the GDP at regional level. In paricular we observe:
+We can also observe the category detail of the total GDP at regional level. We observe:
 
 - Service sector - Lower than national level
 - Agricultural - Higher than national level
 - Manufacture Industry - Higher than national level
 
-```{r}
+```{r fig_gdp, fig.cap="\\label{fig:fig_gdp} Distribution of total GDP into economic activities by region"}
 source("Tourism.R",encoding = "UTF-8")
 fig_gdp
 ```
@@ -350,48 +376,60 @@ We can use the National Socioeconomic Characterization Survey ([CASEN](http://ob
 
 ### Income
 
-Let's start with the mean annual income (ytotcor variable). Almost all communes show **mean income below national average**.
+We can analyze the mean annual income (*ytotcor variable in the CASEN*). Almost all communes show **mean income below national average**. This is a clear indicator that the zone needs further investment and targeted public policies to improve the job conditions.
 
-```{r}
+```{r fig_income, fig.cap="\\label{fig:fig_income} Mean annual income per commune"}
 source("casen_load.R",encoding = "UTF-8")
 fig_income
 ```
 
-Perhaps a more robust metric is the median annual income, that sets the dividing line between half of the population. That is, half of the population have a lower income than the median, and the other half a higher income. In this case we observe that the communes in the zone are **all below the national average**. This socioeconomic condition hopefully can improve in the years to come to at least achieve national levels. 
+A more robust metric to characterize the income is the median, as it is robust to outliers. The median basically sets the dividing line between half of the population. That is, half of the population have a lower income than the median, and the other half a higher income. In this case we observe that the communes in the zone are **all below the national average**. This socioeconomic condition hopefully can improve in the years to come to at least reach national levels. In order to do so, adequate public policies and investment is required.
 
-```{r}
+```{r fig_income_median, fig.cap="\\label{fig:fig_income_median} Median annual income per commune"}
 fig_income_med
 ```
 
 ### Education
 
-Another way to analyze the socioeconomic conditions of the zone is through educational levels. We can explore the percentage of people with less than high school education. In particular, we observe that for almost all communes in the zone this percentage is higher than the national average. This shows again that the zone needs to improve the socioeconomic conditions with respect to the rest of the country, in particular through more education programs and policies.
+Another way to analyze the socioeconomic conditions of the zone is through educational levels. We can explore the percentage of people with less than high school education. In particular, we observe that for almost all communes in the zone this percentage is higher than the national average. This shows again that the zone needs to improve the socioeconomic conditions with respect to the rest of the country, through policies targeted to increase education coverage and quality.
 
-```{r}
+```{r fig_education, fig.cap="\\label{fig:fig_education} Percentage of people with less than high school education per commune"}
 fig_education
 ```
 
 ### Health
 
-We can also analyze the health coverage in the zone. As the public health system in Chile (FONASA) is according to income, from A-low income to D-high income. We can analyze the percentage of population affiliated to each health provider. Note that the categories are:
+Another proxy to characterize socioeconomic conditions of the zone is the health coverage proportions. As the public health system in Chile (FONASA) is according to income, from A-low income to D-high income. We can analyze the percentage of population affiliated to each health provider. Note that the categories are:
 
 - Isapre - Private provider. Associated with the highest income in the country
 - FF.AA - Army health system
 - Fonasa - Public Health system according to income level - A low income to D high income
 
-We observe a similar situation with lower income in the zone with respect to the national average, as the percentage of the higher income health provide are lower in the zone. 
+We observe a similar situation with lower income in the zone with respect to the national average, as the percentage of people affiliated to the higher income health providers (Isapre and Fonasa D) are lower in the zone. 
 
-```{r}
+```{r fig_health, fig.cap="\\label{fig:fig_health} Distribution of health provider affiliation per commune"}
 fig_health
 ```
 
 # Industry
 
-We can also analyze the presence of industries in the zone. According to the Tax Bureau ([SII](https://www.sii.cl/sobre_el_sii/estadisticas_de_empresas.html)), at 2020 the 14 communes of interest had over 47,479 registered companies, with approximately 250 thousand registered workers. 
+We can also analyze the presence of industries in the zone using the Tax Bureau ([SII](https://www.sii.cl/sobre_el_sii/estadisticas_de_empresas.html)) data. The next figures show the time series, from 2005 to 2020, of the total number of registered companies and workers in the 14 communes of interest. In 2020 the 14 communes of interest had over 47,479 registered companies, with approximately 250 thousand registered workers. We can also see that in 15 years both numbers have duplicated, meaning that if the trend continues the zone could have over 500 thousand workers and 100 thousand companies by 2035.
+
+
+```{r fig_company, fig.cap="\\label{fig:fig_company} Time series of total number of registered companies"}
+source("sii.R", encoding = "UTF-8")
+p_emp
+```
+
+
+```{r fig_worker, fig.cap="\\label{fig:fig_worker} Time series of total number of registered workers"}
+p_workers
+```
+
 
 ## SMA Data
 
-We are going to use data coming from the [SMA](https://snifa.sma.gob.cl/DatosAbiertos), the autorithy in charge of environmental fiscalization in Chile. The data is reported at UF (Unidad Fiscalizable) level, which consist on the basic unit of the SMA to identify common approved projects associated with the same company.
+We are going to use data coming from the [SMA](https://snifa.sma.gob.cl/DatosAbiertos), the authority in charge of environmental fiscalization in Chile. The data is reported at UF (Unidad Fiscalizable) level, which consist of the basic unit of the SMA to identify common approved projects associated with the same company.
 
 ```{r}
 
@@ -416,11 +454,18 @@ n_projects <- n_fuentes %>% ungroup() %>%
   mutate(Region=Region %>% str_remove("Región de "))
 
 
+
+
 # table
 n_projects %>%
   select(Region,Commune,Total,`Pesca y Acuicultura`,
          `Infraestructura Portuaria`,Forestal,Agroindustrias,
          `Saneamiento Ambiental`) %>% 
+  rename(`Fishing and Aquaculture`=`Pesca y Acuicultura`,
+         `Port Infrastructure`=`Infraestructura Portuaria`,
+         Forestry=Forestal,
+         Agroindustries=Agroindustrias,
+         `Environmental Sanitation`=`Saneamiento Ambiental`) %>% 
   flextable() %>% 
   autofit() %>% 
   set_caption(caption="Number of projects with environmental permit",
@@ -433,7 +478,7 @@ n_projects %>%
 rm(n_fuentes,n_projects)
 ```
 
-One interesting point to notice is the high presence of companies associated with fishing and aquaculture. reaching almost 400 projects 8half of the projects in the zone). The SMA also has data on companies that generate water emissions as part of their operations, which if done inproperly can damage the North-Patagonian lakes ecosystem. Let's look at the companies with water emissions:
+One interesting point to notice is the strong presence of companies associated with fishing and aquaculture. reaching almost 400 projects (half of the projects in the zone). The SMA also has data on companies that generate water emissions as part of their operations, which if done improperly can damage the North-Patagonian lakes ecosystem. We can look at the companies with declared water emissions:
 
 ```{r}
 emisiones_uf <- read_rds("../../Data/SMA/emisiones_RILES.rds") 
@@ -456,6 +501,10 @@ n_projects <- n_fuentes %>% ungroup() %>%
   mutate(Region=Region %>% str_remove("Región de "))
 
 n_projects %>% 
+    rename(`Fishing and Aquaculture`=`Pesca y Acuicultura`,
+         `Industrial Installations`=`Instalación fabril`,
+         Mining=Minería,
+         `Environmental Sanitation`=`Saneamiento Ambiental`) %>% 
   flextable() %>% 
   autofit() %>% 
   set_caption(caption="Number of projects with declared water emissions",
@@ -467,6 +516,21 @@ n_projects %>%
 rm(n_fuentes,n_projects)
 ```
 We can observe that the majority of the industries with water emissions are in the sector of fishing and aquaculture. A further analysis can be done on the reported emissions from the SMA, analyzing the emissions along the following dimensions: location, magnitude, time and pollutant. This analyzes could help understand and identify the main source of pollution of the North-Patagonian lakes.
+
+# Conclusion
+
+Here are some key takeaways points from the characterization of the 23 North-Patagonian lakes and the zone where they are located:
+
+- There is a high diversity among lakes physical conditions: size, volume and monitoring capabilities.
+- Roughly half-million people live close to the 23 North-Patagonian lakes, mostly around 5 important lakes. The total number of people that visits the lakes during the year is also an important factor to consider when evaluating the anthropogenic impact to the lakes. 
+- Zone is relatively poor compared to the national average: in income, educational levels and health access. The zone requires public policies to increase investment, job opportunities and educational access.
+- The zone has the presence of natural ecosystems (lakes, wetlands, mountains), industries, infrastructure and human settlements, including a high presence of indigenous communities. This intersectionality provides additional challenges to coordinate the protection of the North-Patagonian lakes.
+- There is vast amount of publicly available data to conduct further research in the zone. Interesting data that can potentially be used to help Chile Lagos Limpios mission is:
+  - Population data with detail level at census district.
+  - Socioeconomic characterization via national surveys.
+  - Climatic conditions using the registered data from the diverse monitor stations in the zone.
+  - Industry activity data and declared water emissions to the SMA.
+
 
 # References
 
